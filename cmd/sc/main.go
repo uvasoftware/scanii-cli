@@ -2,14 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/gops/agent"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
-	"runtime/debug"
-	"scanii-cli/cmd/sc/internal/commands"
-	"scanii-cli/internal/vcs"
 )
 
 var verbose bool
@@ -21,10 +17,22 @@ func init() {
 func main() {
 
 	rootCmd := &cobra.Command{
-		Use:     "sc",
+		Use:           "sc",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		Annotations: map[string]string{
+			"get":       "http",
+			"post":      "http",
+			"delete":    "http",
+			"trigger":   "webhooks",
+			"listen":    "webhooks",
+			"logs":      "stripe",
+			"status":    "stripe",
+			"resources": "resources",
+		},
 		Version: "0.0.1",
-		Short:   "Scanii CLI",
-		Long:    "A CLI to help you integrate Scanii (https://www.scanii.com) with your application",
+		Short:   "A CLI to help you integrate Scanii with your application",
+		Long:    "",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			level := slog.LevelInfo
 			if verbose {
@@ -39,47 +47,47 @@ func main() {
 			})
 			slog.SetDefault(slog.New(handler))
 			slog.Debug("running in debug mode")
-
-			cmd.SilenceUsage = true
-			cmd.SilenceErrors = true
-
-			if err := agent.Listen(agent.Options{
-				ShutdownCleanup: true,
-			}); err != nil {
-				panic(err)
-			}
-
 		},
 	}
 
 	var versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Print application version and runtime information",
+		Short: "Print the version number of Hugo",
+		Long:  `All software has versions. This is Hugo's`,
 		Run: func(cmd *cobra.Command, args []string) {
-			bi, _ := debug.ReadBuildInfo()
-			fmt.Println("------------------------------------------------------------")
-			fmt.Printf("%-15s: %s\n", "Version", vcs.Version())
-			fmt.Printf("%-15s: %s\n", "Go Version", bi.GoVersion)
-			fmt.Println("------------------------------------------------------------")
-			fmt.Println("Build settings:")
-			for _, e := range bi.Settings {
-				fmt.Printf("  %-15s: %s\n", e.Key, e.Value)
-			}
+			fmt.Println("Hello version")
 		},
 	}
 
+	serverF := serverFlags{}
+	serverCmd := &cobra.Command{
+		Use: "server",
+		Run: func(cmd *cobra.Command, args []string) {
+			runServer(serverF)
+		},
+		Short: "Starts a mock server suitable for testing purposes",
+	}
+
+	serverCmd.PersistentFlags().StringVar(&serverF.address, "address", "localhost:4000", "Address to listen on")
+	serverCmd.PersistentFlags().StringVar(&serverF.engine, "engine", "", "Optional engine config to load")
+	serverCmd.PersistentFlags().StringVar(&serverF.key, "key", "akk_dDCetnjoWQSVtns2", "API key to use, if not provided will be dynamically generated")
+	serverCmd.PersistentFlags().StringVar(&serverF.secret, "secret", "aks_wayY13ZZlsLswr0hA6N6Wp3BtEi6YPR6", "API secret to use, if not provided will be dynamically generated")
+
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(commands.ConfigureCommand())
-	rootCmd.AddCommand(commands.PingCommand())
-	rootCmd.AddCommand(commands.ServerCommand())
-	rootCmd.AddCommand(commands.FileCommand())
-	rootCmd.AddCommand(commands.AccountCommand())
-	rootCmd.AddCommand(commands.AuthTokenCommand())
+	rootCmd.AddCommand(serverCmd)
 
 	err := rootCmd.Execute()
 	if err != nil {
-		println(err.Error())
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
+
+	//subcommands.Register(subcommands.HelpCommand(), "")
+	//subcommands.Register(subcommands.FlagsCommand(), "")
+	//subcommands.Register(subcommands.CommandsCommand(), "")
+	//subcommands.Register(&serverCommand{}, "")
+	//flag.Parse()
+	//ctx := context.Background()
+	//os.Exit(int(subcommands.Execute(ctx)))
 }

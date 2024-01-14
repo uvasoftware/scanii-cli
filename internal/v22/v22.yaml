@@ -38,7 +38,7 @@ servers:
     description: Singapore/Singapore processing region
 tags:
   - name: Files
-    description: Operations related to file analysis.
+    description: Operations related to file analysis. 
   - name: General
     description: Operations related to account management and credentials validation
   - name: Authentication Token
@@ -109,13 +109,13 @@ components:
         id:
           type: string
           nullable: true
-        error:
-          type: string
-          nullable: true
         metadata:
           type: object
           additionalProperties:
-            type: string
+            $ref: '#/components/schemas/MetadataObject'
+        error:
+          type: string
+          nullable: true
     ProcessingPendingResponse:
       type: object
       description: Entity representation of a pending content analysis
@@ -134,15 +134,12 @@ components:
           type: string
         checksum:
           type: string
-          nullable: true
           description: The SHA1 digest of the content processed
         content_length:
           type: number
-          nullable: true
           description: The length in bytes of the content processed
         findings:
           type: array
-          nullable: true
           items:
             type: string
           description: |
@@ -158,34 +155,17 @@ components:
             A empty findings array means that no findings were identified for the content processed and it should be considered *safe*. 
 
         creation_date:
-          nullable: true
           type: string
           format: iso8601
           description: ISO8601 time stamp of when the content was processed
         content_type:
           type: string
-          nullable: true
           description: The media type of the content processed
         metadata:
           type: object
-          nullable: true
+          description: Arbitrary set of user-supplied key/value pairs
           additionalProperties:
-            type: string
-        error:
-          type: string
-          nullable: true
-          description: |
-            If an error occurred during processing this field will contain the error message. Please note that this field is only
-            present if an error occurred during processing.
-    AuthToken:
-      type: object
-      properties:
-        id:
-          type: string
-        creation_date:
-          type: string
-        expiration_date:
-          type: string
+            $ref: '#/components/schemas/MetadataObject'
     AccountInfo:
       type: object
       properties:
@@ -213,6 +193,13 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ApiKey'
+    MetadataObject:
+      type: object
+      description: Arbitrary set of user-supplied key/value pairs
+      example: "metadata[foo]=bar"
+      additionalProperties:
+        type: string
+        maxLength: 30
   securitySchemes:
     token:
       type: http
@@ -322,9 +309,7 @@ paths:
                   description: URL to fetch and analyze
                   type: string
                 metadata:
-                  type: object
-                  additionalProperties:
-                    type: string
+                  $ref: '#/components/schemas/MetadataObject'
               required:
                 - file
                 - location
@@ -401,9 +386,7 @@ paths:
                   description: Callback URL to notify once processing is completed
                   type: string
                 metadata:
-                  type: object
-                  additionalProperties:
-                    type: string
+                  $ref: '#/components/schemas/MetadataObject'
       responses:
         '202':
           description: Accepted for processing
@@ -452,9 +435,8 @@ paths:
                 callback:
                   description: Callback URL to notify once processing is completed
                   type: string
-              additionalProperties:
-                type: string
-                format: metadata[foo]=bar
+                metadata:
+                  $ref: '#/components/schemas/MetadataObject'
       responses:
         '202':
           description: Accepted for processing
@@ -492,7 +474,7 @@ paths:
       2. They cannot be used to access administrative resources
     get:
       summary: Retrieves a previously created temporary authentication token
-      operationId: retrieveToken
+      operationId: getToken
       parameters:
         - in: path
           name: id
@@ -513,7 +495,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthToken'
+                type: object
+                properties:
+                  id:
+                    type: string
+                  creation_date:
+                    type: string
+                  expiration_date:
+                    type: string
         '401':
           $ref: '#/components/responses/401'
     delete:
@@ -567,7 +556,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthToken'
-
+                type: object
+                properties:
+                  id:
+                    type: string
+                  creation_date:
+                    type: string
+                  expiration_date:
+                    type: string
         '401':
           $ref: '#/components/responses/401'

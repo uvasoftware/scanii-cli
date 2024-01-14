@@ -37,7 +37,7 @@ tidy:
 audit:
 	go mod verify
 	go vet ./...
-	go run honnef.co/go/tools/cmd/staticcheck@latest -checks=all,-ST1000,-U1000,-SA1029 ./...
+	go run honnef.co/go/tools/cmd/staticcheck@latest -checks=all,-ST1000,-U1000 ./...
 	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 	go test -race -buildvcs -vet=off ./...
 
@@ -60,24 +60,27 @@ test/cover:
 ## build: build the application
 .PHONY: build
 build:
-	rm -rf dist/*
 	go generate ./...
-	go build -o=./dist/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
 .PHONY: run
-run:
-	go run ${MAIN_PACKAGE_PATH}
+run: build
+	/tmp/bin/${BINARY_NAME}
+
+## run/live: run the application with reloading on file changes
+.PHONY: run/live
+run/live:
+	go run github.com/cosmtrek/air@v1.43.0 \
+		--build.cmd "make build" --build.bin "/tmp/bin/${BINARY_NAME}" --build.delay "100" \
+		--build.exclude_dir "" \
+		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico" \
+		--misc.clean_on_exit "true"
 
 
 # ==================================================================================== #
 # OPERATIONS
 # ==================================================================================== #
-
-## release-local: creates a new LOCAL release
-.PHONY: release-local
-release-local: tidy audit no-dirty
-	go run github.com/goreleaser/goreleaser@latest
 
 ## push: push changes to the remote Git repository
 .PHONY: push

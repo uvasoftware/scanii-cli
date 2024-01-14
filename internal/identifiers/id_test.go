@@ -3,6 +3,7 @@
 package identifiers
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -18,10 +19,14 @@ func TestGenerate(t *testing.T) {
 	}
 
 	for i := 0; i < iterations; i++ {
-		r := <-results
-		if len(r) == 0 {
-			t.Fatalf("empty result")
+		select {
+		case r := <-results:
+			if len(r) == 0 {
+				t.Fatalf("empty result")
+			}
+			fmt.Println(r)
 		}
+
 	}
 }
 func TestGenerateShort(t *testing.T) {
@@ -36,10 +41,14 @@ func TestGenerateShort(t *testing.T) {
 	}
 
 	for i := 0; i < iterations; i++ {
-		r := <-results
-		if len(r) == 0 {
-			t.Fatalf("empty result")
+		select {
+		case r := <-results:
+			if len(r) == 0 {
+				t.Fatalf("empty result")
+			}
+			fmt.Println(r)
 		}
+
 	}
 }
 
