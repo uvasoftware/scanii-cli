@@ -1,0 +1,7 @@
+package: v22
+generate:
+  embedded-spec: true
+  strict-server: true
+  models: true
+  chi-server: true
+output: v22.gen.go
