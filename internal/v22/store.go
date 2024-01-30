@@ -6,38 +6,32 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"reflect"
+	"scanii-cli/internal/engine"
 )
 
 type store struct {
 	path string
 }
 
-func (s store) load(key string, v any) error {
-	// same rules as json.unmarshal
-	if v == nil {
-		return fmt.Errorf("v cannot be nil")
-	}
-	if reflect.ValueOf(v).Kind() != reflect.Ptr {
-		return fmt.Errorf("v must be a pointer")
-	}
-
+func (s store) load(key string) (*engine.Result, error) {
 	dest := filepath.Join(s.path, fmt.Sprintf("%s.json", key))
 	slog.Debug("loading result", "dest", dest)
 	js, err := os.ReadFile(dest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = json.Unmarshal(js, &v)
+	result := engine.Result{}
+	err = json.Unmarshal(js, &result)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return &result, nil
 }
 
-func (s store) save(key string, v any) error {
-	js, err := json.Marshal(v)
+func (s store) save(key string, result *engine.Result) error {
+	js, err := json.Marshal(result)
 	if err != nil {
 		return err
 	}
@@ -48,19 +42,6 @@ func (s store) save(key string, v any) error {
 		return err
 	}
 
-	slog.Info("saved value", "dest", dest)
+	slog.Debug("saved result", "dest", dest)
 	return nil
-}
-
-func (s store) remove(key string) (bool, error) {
-	dest := filepath.Join(s.path, fmt.Sprintf("%s.json", key))
-	err := os.Remove(dest)
-	if err != nil {
-		switch err {
-		case os.ErrNotExist:
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
 }

@@ -31,6 +31,13 @@ type Config struct {
 }
 
 func New() (*Engine, error) {
+	rules := make([]Rule, 0)
+
+	// default rule
+	rules = append(rules, Rule{
+		Format:  "sha256",
+		Content: "",
+	})
 
 	engine := &Engine{
 		config: &Config{
@@ -62,7 +69,6 @@ func (e *Engine) RuleCount() int {
 }
 
 type Result struct {
-	ID            string
 	Sha1          string
 	Sha256        string
 	ContentLength uint64
@@ -70,15 +76,14 @@ type Result struct {
 	ContentType   string
 	CreationDate  string
 	Metadata      map[string]string
-	Error         string
 }
 
 func (e *Engine) Process(contents io.Reader) (Result, error) {
 	result := Result{
 		CreationDate: time.Now().UTC().Format(time.RFC3339Nano),
 	}
-
 	result.Findings = []string{}
+
 	s1 := sha1.New()
 	s2 := sha256.New()
 	dest := io.MultiWriter(s1, s2)
