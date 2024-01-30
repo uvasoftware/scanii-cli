@@ -4,6 +4,20 @@
       "format": "sha1",
       "content": "3395856ce81f2b7382dee72602f798b642f14140",
       "result": "content.malicious.eicar-test-signature"
+    },
+    {
+      "format": "sha1",
+      "content": "cf8bd9dfddff007f75adf4c2be48005cea317c62",
+      "result": "content.malicious.eicar-test-signature"
+    },
+    { "format": "sha256",
+      "content": "25cf0f0ce42f8acd9ea6facc223f54105c7fd0cce63fb7bb5d83e6600100acbd",
+      "result": "content.image.nsfw.nudity"
+    },
+    {
+      "format": "sha256",
+      "content": "0ab57ba85f2955228ef2f1483b572241f392f5a035be147156b26f65e7165c83",
+      "result": "content.en.language.nsfw.0"
     }
   ]
 }

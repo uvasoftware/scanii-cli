@@ -163,9 +163,8 @@ components:
           description: The media type of the content processed
         metadata:
           type: object
-          description: Arbitrary set of user-supplied key/value pairs
           additionalProperties:
-            $ref: '#/components/schemas/MetadataObject'
+            type: string
     AccountInfo:
       type: object
       properties:
@@ -309,7 +308,9 @@ paths:
                   description: URL to fetch and analyze
                   type: string
                 metadata:
-                  $ref: '#/components/schemas/MetadataObject'
+                  type: object
+                  additionalProperties:
+                    type: string
               required:
                 - file
                 - location
@@ -435,8 +436,9 @@ paths:
                 callback:
                   description: Callback URL to notify once processing is completed
                   type: string
-                metadata:
-                  $ref: '#/components/schemas/MetadataObject'
+              additionalProperties:
+                type: string
+                format: metadata[foo]=bar
       responses:
         '202':
           description: Accepted for processing

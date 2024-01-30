@@ -5,36 +5,44 @@ import (
 	"io"
 	"log/slog"
 	"scanii-cli/internal/engine"
+	"strings"
 )
 
-type MockHandler struct {
+var (
+	errorNoFileSent = "Regrettably, you did not send us any content to process - please see https://docs.scanii.com"
+)
+
+type FakeHandler struct {
 	engine *engine.Engine
 }
 
-func (m MockHandler) Account(ctx context.Context, request AccountRequestObject) (AccountResponseObject, error) {
+func (m FakeHandler) Account(ctx context.Context, request AccountRequestObject) (AccountResponseObject, error) {
 
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error) {
+func (m FakeHandler) CreateToken(ctx context.Context, request CreateTokenRequestObject) (CreateTokenResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) DeleteToken(ctx context.Context, request DeleteTokenRequestObject) (DeleteTokenResponseObject, error) {
+func (m FakeHandler) DeleteToken(ctx context.Context, request DeleteTokenRequestObject) (DeleteTokenResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) GetToken(ctx context.Context, request GetTokenRequestObject) (GetTokenResponseObject, error) {
+func (m FakeHandler) GetToken(ctx context.Context, request GetTokenRequestObject) (GetTokenResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) ProcessFile(ctx context.Context, request ProcessFileRequestObject) (ProcessFileResponseObject, error) {
+func (m FakeHandler) ProcessFile(ctx context.Context, request ProcessFileRequestObject) (ProcessFileResponseObject, error) {
 	slog.Debug("handling files")
 	result := engine.Result{}
+	id := generateId()
+	fileFound := false
+	metadata := make(map[string]string)
 
 	for {
 		part, err := request.Body.NextPart()
@@ -44,44 +52,75 @@ func (m MockHandler) ProcessFile(ctx context.Context, request ProcessFileRequest
 			}
 		}
 		slog.Debug("processing part", "name", part.FormName())
-		result, err = m.engine.Process(part)
-		if err != nil {
-			return nil, err
+		if part.FormName() == "file" {
+			fileFound = true
+			result, err = m.engine.Process(part)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if strings.HasPrefix(part.FormName(), "metadata[") {
+			k := extractMetadataKey(part.FormName())
+			buf := strings.Builder{}
+			_, err := io.Copy(&buf, part)
+			if err != nil {
+				slog.Warn("could not parse metadata", "key", k, "error", err.Error())
+			}
+
+			metadata[k] = buf.String()
 		}
 	}
-	length := float32(result.ContentLength)
 
+	if !fileFound {
+		resp := ProcessFile400JSONResponse{}
+		resp.Body.Error = &errorNoFileSent
+		resp.Body.Id = &id
+		return resp, nil
+	}
+
+	// file found:
+	length := float32(result.ContentLength)
 	resp := ProcessFile201JSONResponse{}
+	resp.Body.Id = &id
 	resp.Body.Findings = &result.Findings
 	resp.Body.Checksum = &result.Sha1
 	resp.Body.ContentLength = &length
-	resp.Body.Metadata = &map[string]MetadataObject{
-		"hello": {
-			"foo": "bar",
-		},
+	resp.Body.ContentType = &result.ContentType
+	resp.Body.Metadata = &metadata
+	resp.Body.CreationDate = &result.CreationDate
+
+	// saving metadata
+	result.Metadata = metadata
+
+	slog.Debug("saving result")
+	err := defaultStore.save(id, &result)
+	if err != nil {
+		return nil, err
 	}
 
 	return resp, nil
+
 }
 
-func (m MockHandler) ProcessFileAsync(ctx context.Context, request ProcessFileAsyncRequestObject) (ProcessFileAsyncResponseObject, error) {
+func (m FakeHandler) ProcessFileAsync(ctx context.Context, request ProcessFileAsyncRequestObject) (ProcessFileAsyncResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) ProcessFileFetch(ctx context.Context, request ProcessFileFetchRequestObject) (ProcessFileFetchResponseObject, error) {
+func (m FakeHandler) ProcessFileFetch(ctx context.Context, request ProcessFileFetchRequestObject) (ProcessFileFetchResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m MockHandler) RetrieveFile(ctx context.Context, request RetrieveFileRequestObject) (RetrieveFileResponseObject, error) {
+func (m FakeHandler) RetrieveFile(ctx context.Context, request RetrieveFileRequestObject) (RetrieveFileResponseObject, error) {
 	return nil, nil
 }
 
-func (m MockHandler) Ping(ctx context.Context, request PingRequestObject) (PingResponseObject, error) {
+func (m FakeHandler) Ping(ctx context.Context, request PingRequestObject) (PingResponseObject, error) {
 	resp := Ping200JSONResponse{}
 	message := "pong"
-	key := "124"
+	key := ctx.Value("key").(string)
+
 	resp.Body.Message = &message
 	resp.Body.Key = &key
 

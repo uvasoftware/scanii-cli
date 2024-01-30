@@ -61,12 +61,12 @@ test/cover:
 .PHONY: build
 build:
 	go generate ./...
-	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+	go build -o=./dist/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
 .PHONY: run
-run: build
-	/tmp/bin/${BINARY_NAME}
+run:
+	go run ${MAIN_PACKAGE_PATH}
 
 ## run/live: run the application with reloading on file changes
 .PHONY: run/live
