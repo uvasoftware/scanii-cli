@@ -165,7 +165,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h FakeHandler) RetrieveFile(w http.ResponseWriter, r *http.Request, id string) {
+func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id string) {
 
 	if id == "" {
 		h.renderClientError(http.StatusBadRequest, w, errorArgMissing)
@@ -209,22 +209,22 @@ func (h FakeHandler) Ping(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
+func (h FakeHandler) Account(_ http.ResponseWriter, _ *http.Request) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
+func (h FakeHandler) CreateToken(_ http.ResponseWriter, _ *http.Request) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h FakeHandler) DeleteToken(w http.ResponseWriter, r *http.Request, id string) {
+func (h FakeHandler) DeleteToken(_ http.ResponseWriter, _ *http.Request, _ string) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h FakeHandler) GetToken(w http.ResponseWriter, r *http.Request, id string) {
+func (h FakeHandler) GetToken(_ http.ResponseWriter, _ *http.Request, _ string) {
 	//TODO implement me
 	panic("implement me")
 }
