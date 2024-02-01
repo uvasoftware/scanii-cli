@@ -72,23 +72,13 @@ func runServer(flags serverFlags) {
 	}),
 	))
 
-	mux.Use(func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-			slog.Info("R:", "remote", r.RemoteAddr, "proto", r.Proto, "method", r.Method, "path", r.URL.RequestURI(), slog.Duration("duration", time.Since(start)))
-
-			handler.ServeHTTP(w, r)
-
-		})
-	})
-
 	eng, err := engine.New()
 	if err != nil {
 		slog.Error("could not create engine")
 		os.Exit(2)
 	}
 
-	v22.Setup(mux, eng, flags.key, flags.secret, flags.data)
+	v22.Setup(mux, eng, flags.key, flags.secret, flags.data, "http://"+flags.address)
 
 	srv := &http.Server{
 		Addr:         flags.address,

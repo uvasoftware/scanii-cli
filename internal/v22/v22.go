@@ -10,15 +10,16 @@ import (
 	"net/http"
 	"scanii-cli/internal/engine"
 	"scanii-cli/internal/helpers"
+	"scanii-cli/internal/identifiers"
 	"strings"
 )
 
-var defaultStore store
-
-func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string) {
-	si := NewStrictHandler(FakeHandler{
-		engine: eng,
-	}, nil)
+func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl string) {
+	handlers := FakeHandler{
+		engine:  eng,
+		store:   store{path: data},
+		baseurl: baseUrl,
+	}
 
 	swagger, err := GetSwagger()
 	if err != nil {
@@ -61,16 +62,28 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string) {
 				}
 			})
 		})
+		router.Use(func(next http.Handler) http.Handler {
+			hostId := "hst_" + identifiers.GenerateShort()
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("XScaniiRequestId", "req_"+identifiers.GenerateShort())
+				w.Header().Set("XScaniiHostId", hostId)
+				next.ServeHTTP(w, r)
+			})
+
+		})
 
 		//todo: we should be able to wire all the routes at once but, for some reason it is not working:
 		//router.Handle("/v2.2", Handler(si))
 
-		router.HandleFunc("/v2.2/account.json", si.Account, "GET")
-		router.HandleFunc("/v2.2/ping", si.Ping, "GET")
-		router.HandleFunc("/v2.2/files", si.ProcessFile, "POST")
+		router.HandleFunc("/v2.2/account.json", handlers.Account, "GET")
+		router.HandleFunc("/v2.2/ping", handlers.Ping, "GET")
+		router.HandleFunc("/v2.2/files/async", handlers.ProcessFileAsync, "POST")
+		router.HandleFunc("/v2.2/files", handlers.ProcessFile, "POST")
+		router.HandleFunc("/v2.2/files/:id", func(writer http.ResponseWriter, request *http.Request) {
+			handlers.RetrieveFile(writer, request, flow.Param(request.Context(), "id"))
+		}, "GET")
 	})
 
-	defaultStore = store{path: data}
 }
 
 func generateId() string {

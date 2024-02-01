@@ -82,8 +82,8 @@ func (e *Engine) Process(contents io.Reader) (Result, error) {
 	result := Result{
 		CreationDate: time.Now().UTC().Format(time.RFC3339Nano),
 	}
-	result.Findings = []string{}
 
+	result.Findings = []string{}
 	s1 := sha1.New()
 	s2 := sha256.New()
 	dest := io.MultiWriter(s1, s2)
