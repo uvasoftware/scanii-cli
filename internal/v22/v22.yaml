@@ -38,7 +38,7 @@ servers:
     description: Singapore/Singapore processing region
 tags:
   - name: Files
-    description: Operations related to file analysis. 
+    description: Operations related to file analysis.
   - name: General
     description: Operations related to account management and credentials validation
   - name: Authentication Token

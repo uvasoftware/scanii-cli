@@ -332,6 +332,7 @@ func runFileProcess(
 				r := resultRecord{
 					path: p,
 				}
+				calculatedSha1 := ""
 				fd, err := os.Open(p)
 				if err != nil {
 					slog.Error("could not open file", "path", p, "error", err.Error())
@@ -339,26 +340,31 @@ func runFileProcess(
 					resultChan <- r
 				}
 
-				// let's also verify the checksum while reading the file to avoid buffering it in memory
-				sha1 := sha1hash.New()
-				fdAndShaReader := io.TeeReader(fd, sha1)
-
 				// connects the http clients with the multipart producer
-				pipeOut, pipeIn := io.Pipe()
-				mpb := multipart.NewWriter(pipeIn)
+				pipeReader, pipeWriter := io.Pipe()
+
+				mpb := multipart.NewWriter(pipeWriter)
 
 				// firing off multipart stream producer, so we don't need to buffer it in-memory
 				go func() {
+					// let's also verify the checksum while reading the file to avoid buffering it in memory
+					sha1 := sha1hash.New()
+					fdAndShaReader := io.TeeReader(fd, sha1)
+
 					filePartWriter, err := mpb.CreateFormFile("file", filepath.Base(p))
 					if err != nil {
 						slog.Error("could not create form field", "error", err.Error())
+						_ = pipeWriter.CloseWithError(err)
+						return
 					}
 
-					_, err = io.Copy(filePartWriter, fdAndShaReader)
-					if err != nil {
-						//todo improve this
-						panic(err)
+					if _, err := io.Copy(filePartWriter, fdAndShaReader); err != nil {
+						slog.Error("could not copy file to form field", "error", err.Error())
+						_ = pipeWriter.CloseWithError(err)
+						return
 					}
+					calculatedSha1 = fmt.Sprintf("%x", sha1.Sum(nil))
+					slog.Debug("calculated sha1", "sha1", calculatedSha1)
 
 					m := extractMedata(metadata)
 
@@ -366,21 +372,13 @@ func runFileProcess(
 					for k, v := range m {
 						if err = mpb.WriteField(fmt.Sprintf("metadata[%s]", k), v); err != nil {
 							slog.Error("could not write metadata", "key", k, "value", v, "error", err.Error())
+							_ = pipeWriter.CloseWithError(err)
+							return
 						}
 					}
 
-					/// finalizes multipart request
-					if err = mpb.Close(); err != nil {
-						slog.Error("could not copy file to form field", "error", err.Error())
-					}
-
-					if err = pipeIn.Close(); err != nil {
-						slog.Error("could not close pipe", "error", err.Error())
-					}
-
-					if err = fd.Close(); err != nil {
-						slog.Error("could not close file", "error", err.Error())
-					}
+					_ = mpb.Close()
+					_ = pipeWriter.Close()
 
 				}()
 
@@ -388,7 +386,7 @@ func runFileProcess(
 				case false:
 					var localErr error
 
-					resp, localErr := client.ProcessFileWithBody(context.Background(), mpb.FormDataContentType(), pipeOut)
+					resp, localErr := client.ProcessFileWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
 					if localErr != nil {
 						slog.Error("could not process file", "error", localErr.Error())
 						r.err = localErr
@@ -427,15 +425,17 @@ func runFileProcess(
 						}
 
 						// verifying checksum
-						if r.checksum != fmt.Sprintf("%x", sha1.Sum(nil)) {
-							slog.Error("checksum mismatch", "expected", r.checksum, "actual", fmt.Sprintf("%x", sha1.Sum(nil)))
+						if r.checksum != calculatedSha1 {
+							slog.Error("checksum mismatch", "expected", calculatedSha1, "actual", r.checksum)
+							r.err = fmt.Errorf("checksum mismatch, expected %s, actual %x", calculatedSha1, r.checksum)
+
 						} else {
-							slog.Debug("checksum verified", "expected", r.checksum, "actual", fmt.Sprintf("%x", sha1.Sum(nil)))
+							slog.Debug("checksum verified", "expected", calculatedSha1, "actual", r.checksum)
 						}
 
 					}
 				case true:
-					resp, err := client.ProcessFileAsyncWithBody(context.Background(), mpb.FormDataContentType(), pipeOut)
+					resp, err := client.ProcessFileAsyncWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
 					if err != nil {
 						slog.Error("could not process file", "error", err.Error())
 						break
@@ -456,6 +456,7 @@ func runFileProcess(
 					}
 				}
 
+				_ = fd.Close()
 				// sending result
 				resultChan <- r
 			}
