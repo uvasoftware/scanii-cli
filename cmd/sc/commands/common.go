@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 	v22 "scanii-cli/internal/v22"
 	"scanii-cli/internal/vcs"
 	"strings"
@@ -25,7 +24,8 @@ func createClient(config *configuration) (*v22.Client, error) {
 	})
 
 	client, err := v22.NewClient(dest, customizer, v22.WithHTTPClient(&http.Client{
-		Transport: &loggingTransport{},
+		//Timeout: 30 * time.Second,
+		//Transport: &loggingTransport{},
 	}))
 	if err != nil {
 		return nil, err
@@ -35,18 +35,18 @@ func createClient(config *configuration) (*v22.Client, error) {
 
 }
 
-type loggingTransport struct{}
-
-func (s *loggingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	bytes, _ := httputil.DumpRequestOut(r, true)
-
-	resp, err := http.DefaultTransport.RoundTrip(r)
-	// err is returned after dumping the response
-
-	respBytes, _ := httputil.DumpResponse(resp, true)
-	bytes = append(bytes, respBytes...)
-
-	fmt.Printf("%s\n", bytes)
-
-	return resp, err
-}
+//type loggingTransport struct{}
+//
+//func (s *loggingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+//	bytes, _ := httputil.DumpRequestOut(r, true)
+//
+//	resp, err := http.DefaultTransport.RoundTrip(r)
+//	// err is returned after dumping the response
+//
+//	respBytes, _ := httputil.DumpResponse(resp, true)
+//	bytes = append(bytes, respBytes...)
+//
+//	fmt.Printf("%s\n", bytes)
+//
+//	return resp, err
+//}

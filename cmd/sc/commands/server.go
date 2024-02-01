@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"github.com/alexedwards/flow"
@@ -15,6 +16,9 @@ import (
 	v22 "scanii-cli/internal/v22"
 	"time"
 )
+
+//go:embed  static/**
+var static embed.FS
 
 type serverFlags struct {
 	address   string
@@ -52,8 +56,8 @@ func runServer(flags serverFlags) {
 		}
 	}
 
-	mux := flow.New()
-	mux.Use(httplog.RequestLogger(httplog.NewLogger("sc", httplog.Options{
+	router := flow.New()
+	router.Use(httplog.RequestLogger(httplog.NewLogger("sc", httplog.Options{
 		LogLevel:         slog.LevelInfo,
 		Concise:          true,
 		RequestHeaders:   true,
@@ -72,17 +76,21 @@ func runServer(flags serverFlags) {
 	}),
 	))
 
+	// static static
+	fileServer := http.FileServer(http.FS(static))
+	router.Handle("/static/...", fileServer, "GET")
+
 	eng, err := engine.New()
 	if err != nil {
 		slog.Error("could not create engine")
 		os.Exit(2)
 	}
 
-	v22.Setup(mux, eng, flags.key, flags.secret, flags.data, "http://"+flags.address)
+	v22.Setup(router, eng, flags.key, flags.secret, flags.data, "http://"+flags.address)
 
 	srv := &http.Server{
 		Addr:         flags.address,
-		Handler:      mux,
+		Handler:      router,
 		IdleTimeout:  30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,

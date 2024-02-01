@@ -78,6 +78,7 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 		router.HandleFunc("/v2.2/account.json", handlers.Account, "GET")
 		router.HandleFunc("/v2.2/ping", handlers.Ping, "GET")
 		router.HandleFunc("/v2.2/files/async", handlers.ProcessFileAsync, "POST")
+		router.HandleFunc("/v2.2/files/fetch", handlers.ProcessFileFetch, "POST")
 		router.HandleFunc("/v2.2/files", handlers.ProcessFile, "POST")
 		router.HandleFunc("/v2.2/files/:id", func(writer http.ResponseWriter, request *http.Request) {
 			handlers.RetrieveFile(writer, request, flow.Param(request.Context(), "id"))

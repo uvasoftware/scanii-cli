@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/lmittmann/tint"
 	"log/slog"
 	"os"
@@ -36,7 +37,7 @@ func Test_ShouldProcessSync(t *testing.T) {
 		t.Fatalf("expected 1 result, got %d", len(results))
 	}
 
-	assertEicar(t, results[0])
+	assertEicar(t, &results[0])
 
 }
 
@@ -48,22 +49,18 @@ func Test_ShouldProcessLocationSync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := runFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", false)
+	result, err := runLocationProcess(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
 
-	if len(results) != 1 {
-		t.Fatalf("expected 1 result, got %d", len(results))
-	}
-
-	assertEicar(t, results[0])
+	assertEicar(t, result)
 
 }
 
 // assertEicar checks that the result is the expected eicar test file
 // https://en.wikipedia.org/wiki/EICAR_test_file
-func assertEicar(t *testing.T, result resultRecord) {
+func assertEicar(t *testing.T, result *resultRecord) {
 	// check result has findings:
 	if len(result.findings) == 0 {
 		t.Fatalf("expected findings, got none")
@@ -154,7 +151,7 @@ func Test_shouldRetrievePreviousFiles(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
-		assertEicar(t, *retrieve)
+		assertEicar(t, retrieve)
 
 	})
 

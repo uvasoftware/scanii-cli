@@ -22,17 +22,14 @@ type FakeHandler struct {
 }
 
 func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
-	slog.Debug("handling files")
-
 	result := engine.Result{}
 	id := generateId()
 	fileFound := false
 	metadata := make(map[string]string)
-	var contents io.Reader
 
 	reader, err := r.MultipartReader()
 	if err != nil {
-		h.renderServerError(w, err.Error())
+		h.renderClientError(http.StatusMethodNotAllowed, w, err.Error())
 		return
 	}
 	for {
@@ -42,12 +39,24 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 		}
+		// odd but can happen:
+		if part == nil {
+			continue
+		}
+
 		slog.Debug("processing part", "name", part.FormName())
 		if part.FormName() == "file" {
 			fileFound = true
-			contents = part
+
+			// performing analysis, it has to happen while we're parsing the stream
+			result, err = h.engine.Process(part)
+			if err != nil {
+				h.renderServerError(w, err.Error())
+				return
+			}
 
 		}
+
 		if strings.HasPrefix(part.FormName(), "metadata[") {
 			k := extractMetadataKey(part.FormName())
 			buf := strings.Builder{}
@@ -65,21 +74,6 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// this is really a hack since processing is happening sync anyway
-	result, err = h.engine.Process(contents)
-	if err != nil {
-		h.renderServerError(w, err.Error())
-		return
-	}
-
-	if contents.(io.Closer) != nil {
-		err := contents.(io.Closer).Close()
-		if err != nil {
-			slog.Warn("could not close file", "error", err)
-		}
-		// keep going
-	}
-
 	// saving metadata
 	result.Metadata = metadata
 
@@ -90,14 +84,20 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foo := ProcessingPendingResponse{
+	if result.ContentLength == 0 {
+		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
+		return
+	}
+
+	// sending response
+	resp := ProcessingPendingResponse{
 		Id: &id,
 	}
 
 	headers := http.Header{}
 	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
 
-	err = helpers.WriteJSON(w, http.StatusCreated, foo, headers)
+	err = helpers.WriteJSON(w, http.StatusAccepted, resp, headers)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
@@ -105,8 +105,64 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+
+	id := generateId()
+	metadata := make(map[string]string)
+	result := engine.Result{}
+
+	err := r.ParseForm()
+	if err != nil {
+		h.renderClientError(http.StatusBadRequest, w, err.Error())
+		return
+	}
+
+	location := r.Form.Get("location")
+	if location == "" {
+		h.renderClientError(http.StatusBadRequest, w, errorArgMissing)
+		return
+	}
+
+	// fetching content
+	slog.Debug("fetching content from", "location", location)
+	httpResponse, err := http.Get(location)
+	if err != nil {
+		h.renderClientError(http.StatusBadRequest, w, err.Error())
+	}
+
+	// extracting metadata
+	for k, v := range r.Form {
+		if strings.HasPrefix(k, "metadata[") {
+			metadata[extractMetadataKey(k)] = v[0]
+		}
+	}
+
+	// performing analysis, it has to happen while we're parsing the stream
+	result, err = h.engine.Process(httpResponse.Body)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+		return
+	}
+
+	// saving result
+	result.Metadata = metadata
+	err = h.store.save(id, &result)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+		return
+	}
+
+	// sending response
+	resp := ProcessingPendingResponse{
+		Id: &id,
+	}
+
+	headers := http.Header{}
+	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
+
+	err = helpers.WriteJSON(w, http.StatusAccepted, resp, headers)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+	}
 }
 
 func (h FakeHandler) RetrieveFile(w http.ResponseWriter, r *http.Request, id string) {
@@ -174,8 +230,6 @@ func (h FakeHandler) GetToken(w http.ResponseWriter, r *http.Request, id string)
 }
 
 func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
-
-	slog.Debug("handling files")
 
 	result := engine.Result{}
 	id := generateId()
@@ -255,7 +309,7 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !fileFound {
+	if !fileFound && !locationFound {
 		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
 		return
 	}
