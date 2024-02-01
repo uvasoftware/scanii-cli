@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	sha1hash "crypto/sha1"
 	"errors"
@@ -203,7 +204,10 @@ func runFetch(client *v22.Client, location, callback, metadata string) (*resultR
 		form.Add(fmt.Sprintf("metadata[%s]", k), v)
 	}
 	form.Add("location", location)
-	form.Add("callback", callback)
+
+	if callback != "" {
+		form.Add("callback", callback)
+	}
 
 	slog.Debug("form", "form", form.Encode())
 	httpResponse, err := client.ProcessFileFetchWithBody(context.Background(), "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
@@ -605,4 +609,84 @@ func printFileResult(result resultRecord) {
 	}
 
 	fmt.Printf("------\n")
+}
+
+func runLocationProcess(client *v22.Client, location string, callback string, metadata string) (*resultRecord, error) {
+	slog.Debug("processing location", "url", location)
+
+	// verifying url
+	if _, err := url.Parse(location); err != nil {
+		println("Unable to parse url", err.Error())
+		return nil, err
+	}
+
+	m := extractMedata(metadata)
+
+	// because of how we pass metadata arguments, we must manually encode the payload
+	body := bytes.Buffer{}
+	mp := multipart.NewWriter(&body)
+
+	err := mp.WriteField("location", location)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range m {
+		err = mp.WriteField(fmt.Sprintf("metadata[%s]", k), v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if callback != "" {
+		err = mp.WriteField("callback", callback)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = mp.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	httpResponse, err := client.ProcessFileWithBody(context.Background(), mp.FormDataContentType(), &body)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedResult, err := v22.ParseProcessFileResponse(httpResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if httpResponse.StatusCode != http.StatusCreated {
+		slog.Debug("error processing file", "status", httpResponse.StatusCode, "body", string(parsedResult.Body))
+
+		return nil, fmt.Errorf("error: %s", *parsedResult.JSON400.Error)
+	}
+
+	r := resultRecord{}
+	r.id = *parsedResult.JSON201.Id
+	if parsedResult.JSON201.ContentType != nil {
+		r.contentType = *parsedResult.JSON201.ContentType
+	}
+	// if not nil, copy values over:
+	if parsedResult.JSON201.Checksum != nil {
+		r.checksum = *parsedResult.JSON201.Checksum
+	}
+	if parsedResult.JSON201.Findings != nil {
+		r.findings = *parsedResult.JSON201.Findings
+	}
+	if parsedResult.JSON201.ContentLength != nil {
+		r.contentLength = uint64(*parsedResult.JSON201.ContentLength)
+	}
+	if parsedResult.JSON201.CreationDate != nil {
+		r.creationDate = *parsedResult.JSON201.CreationDate
+	}
+	if parsedResult.JSON201.Metadata != nil {
+		r.metadata = *parsedResult.JSON201.Metadata
+	}
+
+	printFileResult(r)
+	return &r, nil
 }
