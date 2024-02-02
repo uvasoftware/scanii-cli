@@ -109,13 +109,13 @@ components:
         id:
           type: string
           nullable: true
-        metadata:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/MetadataObject'
         error:
           type: string
           nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
     ProcessingPendingResponse:
       type: object
       description: Entity representation of a pending content analysis
@@ -134,12 +134,15 @@ components:
           type: string
         checksum:
           type: string
+          nullable: true
           description: The SHA1 digest of the content processed
         content_length:
           type: number
+          nullable: true
           description: The length in bytes of the content processed
         findings:
           type: array
+          nullable: true
           items:
             type: string
           description: |
@@ -155,16 +158,25 @@ components:
             A empty findings array means that no findings were identified for the content processed and it should be considered *safe*. 
 
         creation_date:
+          nullable: true
           type: string
           format: iso8601
           description: ISO8601 time stamp of when the content was processed
         content_type:
           type: string
+          nullable: true
           description: The media type of the content processed
         metadata:
           type: object
+          nullable: true
           additionalProperties:
             type: string
+        error:
+          type: string
+          nullable: true
+          description: |
+            If an error occurred during processing this field will contain the error message. Please note that this field is only
+            present if an error occurred during processing.
     AccountInfo:
       type: object
       properties:
@@ -192,13 +204,6 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ApiKey'
-    MetadataObject:
-      type: object
-      description: Arbitrary set of user-supplied key/value pairs
-      example: "metadata[foo]=bar"
-      additionalProperties:
-        type: string
-        maxLength: 30
   securitySchemes:
     token:
       type: http
@@ -387,7 +392,9 @@ paths:
                   description: Callback URL to notify once processing is completed
                   type: string
                 metadata:
-                  $ref: '#/components/schemas/MetadataObject'
+                  type: object
+                  additionalProperties:
+                    type: string
       responses:
         '202':
           description: Accepted for processing

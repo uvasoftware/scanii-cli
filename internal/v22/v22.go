@@ -72,9 +72,6 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 
 		})
 
-		//todo: we should be able to wire all the routes at once but, for some reason it is not working:
-		//router.Handle("/v2.2", Handler(si))
-
 		router.HandleFunc("/v2.2/account.json", handlers.Account, "GET")
 		router.HandleFunc("/v2.2/ping", handlers.Ping, "GET")
 		router.HandleFunc("/v2.2/files/async", handlers.ProcessFileAsync, "POST")

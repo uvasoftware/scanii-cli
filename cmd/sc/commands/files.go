@@ -173,15 +173,33 @@ func runFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 		return nil, err
 	}
 	fmt.Printf("✔ Result retrieved in %s\n", time.Since(startTime))
+
 	result := resultRecord{
-		id:            *parsedResult.JSON200.Id,
-		checksum:      *parsedResult.JSON200.Checksum,
-		contentType:   *parsedResult.JSON200.ContentType,
-		contentLength: uint64(*parsedResult.JSON200.ContentLength),
-		creationDate:  *parsedResult.JSON200.CreationDate,
-		findings:      *parsedResult.JSON200.Findings,
-		metadata:      *parsedResult.JSON200.Metadata,
+		id: *parsedResult.JSON200.Id,
 	}
+	if parsedResult.JSON200.Metadata != nil {
+		result.metadata = *parsedResult.JSON200.Metadata
+	}
+
+	if parsedResult.JSON200.ContentType != nil {
+		result.contentType = *parsedResult.JSON200.ContentType
+	}
+	if parsedResult.JSON200.Checksum != nil {
+		result.checksum = *parsedResult.JSON200.Checksum
+	}
+	if parsedResult.JSON200.Findings != nil {
+		result.findings = *parsedResult.JSON200.Findings
+	}
+	if parsedResult.JSON200.ContentLength != nil {
+		result.contentLength = uint64(*parsedResult.JSON200.ContentLength)
+	}
+	if parsedResult.JSON200.CreationDate != nil {
+		result.creationDate = *parsedResult.JSON200.CreationDate
+	}
+	if parsedResult.JSON200.Error != nil {
+		result.err = *parsedResult.JSON200.Error
+	}
+
 	printFileResult(result)
 	return &result, nil
 }
@@ -243,7 +261,7 @@ func runFetch(client *v22.Client, location, callback, metadata string) (*resultR
 
 type resultRecord struct {
 	path          string
-	err           error
+	err           string
 	contentType   string
 	findings      []string
 	checksum      string
@@ -340,7 +358,7 @@ func runFileProcess(
 				fd, err := os.Open(p)
 				if err != nil {
 					slog.Error("could not open file", "path", p, "error", err.Error())
-					r.err = err
+					r.err = err.Error()
 					resultChan <- r
 				}
 
@@ -393,19 +411,19 @@ func runFileProcess(
 					resp, localErr := client.ProcessFileWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
 					if localErr != nil {
 						slog.Error("could not process file", "error", localErr.Error())
-						r.err = localErr
+						r.err = localErr.Error()
 						break
 					}
 
 					v, localErr := v22.ParseProcessFileResponse(resp)
 					if localErr != nil {
 						slog.Error("could not parse response", "error", localErr.Error())
-						r.err = localErr
+						r.err = localErr.Error()
 						break
 					}
 					if v.StatusCode() != http.StatusCreated {
 						slog.Debug("error processing file", "path", path, "status", v.StatusCode(), "body", string(v.Body))
-						r.err = fmt.Errorf("error processing file %s, status code %d", path, v.StatusCode())
+						r.err = fmt.Errorf("error processing file %s, status code %d", path, v.StatusCode()).Error()
 					} else {
 						r.id = *v.JSON201.Id
 						if v.JSON201.ContentType != nil {
@@ -431,7 +449,7 @@ func runFileProcess(
 						// verifying checksum
 						if r.checksum != calculatedSha1 {
 							slog.Error("checksum mismatch", "expected", calculatedSha1, "actual", r.checksum)
-							r.err = fmt.Errorf("checksum mismatch, expected %s, actual %x", calculatedSha1, r.checksum)
+							r.err = fmt.Errorf("checksum mismatch, expected %s, actual %x", calculatedSha1, r.checksum).Error()
 
 						} else {
 							slog.Debug("checksum verified", "expected", calculatedSha1, "actual", r.checksum)
@@ -452,7 +470,7 @@ func runFileProcess(
 					}
 					if v.StatusCode() != http.StatusAccepted {
 						slog.Debug("error processing file", "path", path, "status", v.StatusCode(), "body", string(v.Body))
-						r.err = fmt.Errorf("error processing file %s, status code %d", path, v.StatusCode())
+						r.err = fmt.Errorf("error processing file %s, status code %d", path, v.StatusCode()).Error()
 
 					} else {
 						r.id = *v.JSON202.Id
@@ -485,7 +503,7 @@ func runFileProcess(
 		result := <-resultChan
 		results = append(results, result)
 
-		if result.err != nil {
+		if result.err != "" {
 			errorCounter++
 		} else {
 			successCounter++
@@ -565,8 +583,8 @@ func printFileResult(result resultRecord) {
 		fmt.Printf("  %-15s %s\n", "path:", result.path)
 	}
 
-	if result.err != nil {
-		fmt.Printf("  %-15s %s\n", "error:", result.err.Error())
+	if result.err != "" {
+		fmt.Printf("  %-15s %s\n", "error:", result.err)
 		return
 	} else {
 

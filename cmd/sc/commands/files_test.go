@@ -115,22 +115,61 @@ func Test_ShouldProcessFetch(t *testing.T) {
 
 	client, err := createClient(config)
 
-	if err != nil {
-		t.Fatalf("failed to create client: %s", err)
-	}
+	t.Run("positive", func(t *testing.T) {
+		if err != nil {
+			t.Fatalf("failed to create client: %s", err)
+		}
 
-	result, err := runFetch(client, "https://www.google.com", "", "m1=v1")
-	if err != nil {
-		t.Fatalf("failed to process file: %s", err)
-	}
+		result, err := runFetch(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
+		if err != nil {
+			t.Fatalf("failed to process file: %s", err)
+		}
 
-	// ensure pending result has an id and a location;
-	if result.id == "" {
-		t.Fatalf("expected result to have an id")
-	}
-	if result.location == "" {
-		t.Fatalf("expected result to have a location")
-	}
+		// ensure pending result has an id and a location;
+		if result.id == "" {
+			t.Fatalf("expected result to have an id")
+		}
+		if result.location == "" {
+			t.Fatalf("expected result to have a location")
+		}
+
+		// retrieving it
+		retrieve, err := runFileRetrieve(client, result.id)
+		if err != nil {
+			assertEicar(t, retrieve)
+		}
+
+	})
+
+	t.Run("negative", func(t *testing.T) {
+		if err != nil {
+			t.Fatalf("failed to create client: %s", err)
+		}
+
+		result, err := runFetch(client, fmt.Sprintf("http://%s/static/nope", endpoint), "", "m1=v1")
+		if err != nil {
+			t.Fatalf("failed to process file: %s", err)
+		}
+
+		// ensure pending result has an id and a location;
+		if result.id == "" {
+			t.Fatalf("expected result to have an id")
+		}
+		if result.location == "" {
+			t.Fatalf("expected result to have a location")
+		}
+
+		// retrieving it
+		retrieve, err := runFileRetrieve(client, result.id)
+		if err != nil {
+			t.Fatalf("failed to retrieve file: %s", err)
+		}
+
+		if retrieve.err == "" {
+			t.Fatalf("expected result to have an error")
+		}
+
+	})
 
 }
 
