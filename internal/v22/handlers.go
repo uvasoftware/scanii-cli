@@ -13,6 +13,7 @@ var (
 	errorNoFileSent          = "Regrettably, you did not send us any content to process - please see https://docs.scanii.com"
 	errorFileAndLocationSent = "File and Location cannot be passed in at the same time"
 	errorArgMissing          = "A required argument is missing"
+	errorCloudNotDownload    = "Sadly, we could not download content for processing due to a network error."
 )
 
 type FakeHandler struct {
@@ -22,8 +23,8 @@ type FakeHandler struct {
 }
 
 func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
-	result := engine.Result{}
 	id := generateId()
+	result := engine.Result{Id: id}
 	fileFound := false
 	metadata := make(map[string]string)
 
@@ -108,7 +109,9 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 
 	id := generateId()
 	metadata := make(map[string]string)
-	result := engine.Result{}
+	result := engine.Result{
+		Id: id,
+	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -122,13 +125,6 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// fetching content
-	slog.Debug("fetching content from", "location", location)
-	httpResponse, err := http.Get(location)
-	if err != nil {
-		h.renderClientError(http.StatusBadRequest, w, err.Error())
-	}
-
 	// extracting metadata
 	for k, v := range r.Form {
 		if strings.HasPrefix(k, "metadata[") {
@@ -136,28 +132,40 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// performing analysis, it has to happen while we're parsing the stream
-	result, err = h.engine.Process(httpResponse.Body)
+	result.Metadata = metadata
+
+	// fetching content
+	slog.Debug("fetching content from", "location", location)
+	httpResponse, err := http.Get(location)
 	if err != nil {
-		h.renderServerError(w, err.Error())
-		return
+		h.renderClientError(http.StatusBadRequest, w, err.Error())
+	}
+
+	if httpResponse.StatusCode == http.StatusOK {
+		// performing analysis, it has to happen while we're parsing the stream
+		result, err = h.engine.Process(httpResponse.Body)
+		if err != nil {
+			h.renderServerError(w, err.Error())
+			return
+		}
+	} else {
+		result.Error = errorCloudNotDownload
 	}
 
 	// saving result
-	result.Metadata = metadata
 	err = h.store.save(id, &result)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 		return
 	}
 
+	headers := http.Header{}
+	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
+
 	// sending response
 	resp := ProcessingPendingResponse{
 		Id: &id,
 	}
-
-	headers := http.Header{}
-	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
 
 	err = helpers.WriteJSON(w, http.StatusAccepted, resp, headers)
 	if err != nil {
@@ -176,6 +184,21 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 	if err != nil {
 		h.renderClientError(http.StatusNotFound, w, "Sadly, we could not find a file by that id %s")
 		return
+	}
+
+	if result.Error != "" {
+		resp := ErrorResponse{
+			Error:    &result.Error,
+			Metadata: &result.Metadata,
+			Id:       &result.Id,
+		}
+
+		err = helpers.WriteJSON(w, http.StatusOK, resp, nil)
+		if err != nil {
+			h.renderServerError(w, err.Error())
+		}
+		return
+
 	}
 
 	length := float32(result.ContentLength)
@@ -291,13 +314,17 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 			resp, err := http.Get(location)
 			if err != nil {
 				h.renderClientError(http.StatusBadRequest, w, err.Error())
-			}
-
-			// performing analysis, it has to happen while we're parsing the stream
-			result, err = h.engine.Process(resp.Body)
-			if err != nil {
-				h.renderServerError(w, err.Error())
 				return
+			}
+			if resp.StatusCode == http.StatusOK {
+				// performing analysis, it has to happen while we're parsing the stream
+				result, err = h.engine.Process(resp.Body)
+				if err != nil {
+					h.renderServerError(w, err.Error())
+					return
+				}
+			} else {
+				result.Error = errorCloudNotDownload
 			}
 
 		}

@@ -69,6 +69,7 @@ func (e *Engine) RuleCount() int {
 }
 
 type Result struct {
+	Id            string
 	Sha1          string
 	Sha256        string
 	ContentLength uint64
@@ -76,6 +77,7 @@ type Result struct {
 	ContentType   string
 	CreationDate  string
 	Metadata      map[string]string
+	Error         string
 }
 
 func (e *Engine) Process(contents io.Reader) (Result, error) {
