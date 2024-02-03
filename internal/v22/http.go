@@ -1,11 +1,11 @@
-package helpers
+package v22
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-func WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
+func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 	// this ident matches current production settings
 	js, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"scanii-cli/internal/engine"
-	"scanii-cli/internal/helpers"
 	"scanii-cli/internal/identifiers"
 	"strings"
 )
@@ -54,7 +53,7 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 					}
 				}
 
-				err := helpers.WriteJSON(w, http.StatusUnauthorized, map[string]string{
+				err := writeJSON(w, http.StatusUnauthorized, map[string]string{
 					"error": "Apologies but we could not authenticate this request.",
 				}, http.Header{"WWW-Authenticate": {" Basic realm=Scanii API"}})
 				if err != nil {

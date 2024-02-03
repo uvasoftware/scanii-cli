@@ -44,7 +44,7 @@ func FileCommand() *cobra.Command {
 			fmt.Printf("✔ Credentials worked against %s\n", client.Server)
 
 		} else {
-			fmt.Printf(" Credentials worked against %s\n", client.Server)
+			fmt.Printf("❌ Credentials failed against %s\n", client.Server)
 
 			return nil, err
 		}

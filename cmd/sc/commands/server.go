@@ -63,16 +63,6 @@ func runServer(flags serverFlags) {
 		RequestHeaders:   true,
 		MessageFieldName: "message",
 		TimeFieldFormat:  time.DateTime,
-		Tags: map[string]string{
-			"version": "v1.0-81aa4244d9fc8076a",
-			"env":     "dev",
-		},
-		QuietDownRoutes: []string{
-			"/",
-			"/ping",
-		},
-		QuietDownPeriod: 10 * time.Second,
-		// SourceFieldName: "source",
 	}),
 	))
 
