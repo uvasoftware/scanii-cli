@@ -64,6 +64,7 @@ func main() {
 	rootCmd.AddCommand(commands.PingCommand())
 	rootCmd.AddCommand(commands.ServerCommand())
 	rootCmd.AddCommand(commands.FileCommand())
+	rootCmd.AddCommand(commands.AccountCommand())
 
 	err := rootCmd.Execute()
 	if err != nil {

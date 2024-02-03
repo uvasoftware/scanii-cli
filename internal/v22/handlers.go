@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"scanii-cli/internal/engine"
-	"scanii-cli/internal/helpers"
 	"strings"
+	"time"
 )
 
 var (
@@ -98,7 +98,7 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 	headers := http.Header{}
 	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
 
-	err = helpers.WriteJSON(w, http.StatusAccepted, resp, headers)
+	err = writeJSON(w, http.StatusAccepted, resp, headers)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
@@ -167,7 +167,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 		Id: &id,
 	}
 
-	err = helpers.WriteJSON(w, http.StatusAccepted, resp, headers)
+	err = writeJSON(w, http.StatusAccepted, resp, headers)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
@@ -193,7 +193,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 			Id:       &result.Id,
 		}
 
-		err = helpers.WriteJSON(w, http.StatusOK, resp, nil)
+		err = writeJSON(w, http.StatusOK, resp, nil)
 		if err != nil {
 			h.renderServerError(w, err.Error())
 		}
@@ -212,7 +212,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 		CreationDate:  &result.CreationDate,
 	}
 
-	err = helpers.WriteJSON(w, http.StatusOK, resp, nil)
+	err = writeJSON(w, http.StatusOK, resp, nil)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
@@ -225,16 +225,65 @@ func (h FakeHandler) Ping(w http.ResponseWriter, r *http.Request) {
 		"message": "pong",
 		"key":     key,
 	}
-	err := helpers.WriteJSON(w, http.StatusOK, resp, nil)
+	err := writeJSON(w, http.StatusOK, resp, nil)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
 
 }
 
-func (h FakeHandler) Account(_ http.ResponseWriter, _ *http.Request) {
-	//TODO implement me
-	panic("implement me")
+func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
+
+	key := r.Context().Value("key").(string)
+
+	// account basically returns made up stuff
+	balance := float32(42_000)
+	startingBalance := float32(100_000)
+	billingEmail := "admin@example.com"
+	accountName := "ACME Inc."
+	creationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
+	accountSub := "Premium"
+
+	// keys
+	keyCreationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
+	lastSeenDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
+	keyDetectionCategoriesEnabled := []string{"malware", "unsafe_language", "unsafe_image"}
+	keyActive := true
+	keyTags := []string{"tag1", "tag2"}
+
+	apiKey := &ApiKey{
+		Active:                     &keyActive,
+		CreationDate:               &keyCreationDate,
+		DetectionCategoriesEnabled: &keyDetectionCategoriesEnabled,
+		LastSeenDate:               &lastSeenDate,
+		Tags:                       &keyTags,
+	}
+
+	// user:
+	userCreationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
+
+	user1 := &User{
+		CreationDate: &userCreationDate,
+		LastLogin:    nil,
+	}
+
+	resp := AccountInfo{
+		Balance:          &balance,
+		BillingEmail:     &billingEmail,
+		CreationDate:     &creationDate,
+		Keys:             &map[string]ApiKey{key: *apiKey},
+		ModificationDate: &creationDate,
+		Name:             &accountName,
+		StartingBalance:  &startingBalance,
+		Subscription:     &accountSub,
+		Users:            &map[string]User{"bob@example.com": *user1},
+	}
+
+	err := writeJSON(w, http.StatusOK, resp, nil)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+	}
+
 }
 
 func (h FakeHandler) CreateToken(_ http.ResponseWriter, _ *http.Request) {
@@ -372,7 +421,7 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	headers := http.Header{}
 	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
 
-	err = helpers.WriteJSON(w, http.StatusCreated, foo, headers)
+	err = writeJSON(w, http.StatusCreated, foo, headers)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
@@ -383,7 +432,7 @@ func (h FakeHandler) renderServerError(w http.ResponseWriter, message string) {
 }
 
 func (h FakeHandler) renderClientError(status int, w http.ResponseWriter, message string) {
-	err := helpers.WriteJSON(w, status, ErrorResponse{
+	err := writeJSON(w, status, ErrorResponse{
 		Error: &message,
 	}, nil)
 	if err != nil {
