@@ -25,7 +25,7 @@ func PingCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_, err = runPing(client)
+			_, err = callPingEndpoint(client)
 			if err != nil {
 				return err
 			}
@@ -35,7 +35,7 @@ func PingCommand() *cobra.Command {
 	return cmd
 }
 
-func runPing(client *v22.Client) (bool, error) {
+func callPingEndpoint(client *v22.Client) (bool, error) {
 	startTime := time.Now()
 
 	r, err := client.Ping(context.Background())

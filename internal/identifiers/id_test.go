@@ -3,7 +3,6 @@
 package identifiers
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -24,7 +23,6 @@ func TestGenerate(t *testing.T) {
 			if len(r) == 0 {
 				t.Fatalf("empty result")
 			}
-			fmt.Println(r)
 		}
 
 	}
@@ -46,7 +44,6 @@ func TestGenerateShort(t *testing.T) {
 			if len(r) == 0 {
 				t.Fatalf("empty result")
 			}
-			fmt.Println(r)
 		}
 
 	}

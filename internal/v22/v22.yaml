@@ -177,6 +177,15 @@ components:
           description: |
             If an error occurred during processing this field will contain the error message. Please note that this field is only
             present if an error occurred during processing.
+    AuthToken:
+      type: object
+      properties:
+        id:
+          type: string
+        creation_date:
+          type: string
+        expiration_date:
+          type: string
     AccountInfo:
       type: object
       properties:
@@ -483,7 +492,7 @@ paths:
       2. They cannot be used to access administrative resources
     get:
       summary: Retrieves a previously created temporary authentication token
-      operationId: getToken
+      operationId: retrieveToken
       parameters:
         - in: path
           name: id
@@ -504,14 +513,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  creation_date:
-                    type: string
-                  expiration_date:
-                    type: string
+                $ref: '#/components/schemas/AuthToken'
         '401':
           $ref: '#/components/responses/401'
     delete:
@@ -565,13 +567,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  creation_date:
-                    type: string
-                  expiration_date:
-                    type: string
+                $ref: '#/components/schemas/AuthToken'
+
         '401':
           $ref: '#/components/responses/401'

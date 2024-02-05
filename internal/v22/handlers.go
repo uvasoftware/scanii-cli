@@ -1,10 +1,13 @@
 package v22
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"scanii-cli/internal/engine"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -174,13 +177,13 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id string) {
-
 	if id == "" {
 		h.renderClientError(http.StatusBadRequest, w, errorArgMissing)
 		return
 	}
 
-	result, err := h.store.load(id)
+	result := engine.Result{}
+	err := h.store.load(id, &result)
 	if err != nil {
 		h.renderClientError(http.StatusNotFound, w, "Sadly, we could not find a file by that id %s")
 		return
@@ -286,19 +289,70 @@ func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h FakeHandler) CreateToken(_ http.ResponseWriter, _ *http.Request) {
-	//TODO implement me
-	panic("implement me")
+func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		h.renderServerError(w, err.Error())
+	}
+	timeoutInSeconds := 300
+	if r.Form.Get("timeout") != "" {
+		timeoutInSeconds, err = strconv.Atoi(r.Form.Get("timeout"))
+		if err != nil {
+			h.renderClientError(http.StatusBadRequest, w, "could not parse timeout")
+			return
+		}
+	}
+
+	id := generateId()
+	creationDate := time.Now().UTC().Format(time.RFC3339)
+	expirationDate := time.Now().UTC().Add(time.Second * time.Duration(timeoutInSeconds)).Format(time.RFC3339)
+	token := &AuthToken{
+		CreationDate:   &creationDate,
+		ExpirationDate: &expirationDate,
+		Id:             &id,
+	}
+
+	err = h.store.save(id, token)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, token, nil)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+	}
+
 }
 
-func (h FakeHandler) DeleteToken(_ http.ResponseWriter, _ *http.Request, _ string) {
-	//TODO implement me
-	panic("implement me")
+func (h FakeHandler) DeleteToken(w http.ResponseWriter, r *http.Request, id string) {
+	found, err := h.store.remove(id)
+	if !found {
+		h.renderClientError(http.StatusNotFound, w, "could not find token")
+		return
+	}
+
+	if err != nil {
+		h.renderServerError(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h FakeHandler) GetToken(_ http.ResponseWriter, _ *http.Request, _ string) {
-	//TODO implement me
-	panic("implement me")
+func (h FakeHandler) RetrieveToken(w http.ResponseWriter, _ *http.Request, id string) {
+	token := &AuthToken{}
+	err := h.store.load(id, token)
+	if err != nil {
+		h.renderClientError(http.StatusNotFound, w, "could not find token")
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, token, nil)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+	}
 }
 
 func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
@@ -428,6 +482,8 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 
 }
 func (h FakeHandler) renderServerError(w http.ResponseWriter, message string) {
+	trace := fmt.Sprintf("%s\n%s", message, debug.Stack())
+	slog.Error(trace)
 	h.renderClientError(http.StatusInternalServerError, w, message)
 }
 
