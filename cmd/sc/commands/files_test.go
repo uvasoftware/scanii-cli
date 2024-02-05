@@ -28,7 +28,7 @@ func Test_ShouldProcessSync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := runFileProcess(client, eicarSample, 1, false, "m1=v1", false)
+	results, err := callFileProcess(client, eicarSample, 1, false, "m1=v1", false)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
@@ -92,7 +92,7 @@ func Test_ShouldProcessAsync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := runFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
+	results, err := callFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
@@ -120,7 +120,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 			t.Fatalf("failed to create client: %s", err)
 		}
 
-		result, err := runFetch(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
+		result, err := callFilesFetch(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}
@@ -134,7 +134,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 		}
 
 		// retrieving it
-		retrieve, err := runFileRetrieve(client, result.id)
+		retrieve, err := callFileRetrieve(client, result.id)
 		if err != nil {
 			assertEicar(t, retrieve)
 		}
@@ -146,7 +146,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 			t.Fatalf("failed to create client: %s", err)
 		}
 
-		result, err := runFetch(client, fmt.Sprintf("http://%s/static/nope", endpoint), "", "m1=v1")
+		result, err := callFilesFetch(client, fmt.Sprintf("http://%s/static/nope", endpoint), "", "m1=v1")
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}
@@ -160,7 +160,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 		}
 
 		// retrieving it
-		retrieve, err := runFileRetrieve(client, result.id)
+		retrieve, err := callFileRetrieve(client, result.id)
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
@@ -180,13 +180,13 @@ func Test_shouldRetrievePreviousFiles(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := runFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
+	results, err := callFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
 
 	t.Run("valid_id", func(t *testing.T) {
-		retrieve, err := runFileRetrieve(client, results[0].id)
+		retrieve, err := callFileRetrieve(client, results[0].id)
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}

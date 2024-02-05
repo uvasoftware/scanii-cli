@@ -40,7 +40,7 @@ func FileCommand() *cobra.Command {
 
 		// validating credentials
 		fmt.Printf("Checking credentials...\n")
-		if ok, err := runPing(client); ok {
+		if ok, err := callPingEndpoint(client); ok {
 			fmt.Printf("✔ Credentials worked against %s\n", client.Server)
 
 		} else {
@@ -75,7 +75,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = runFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, false)
+			_, err = callFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, false)
 			return err
 		},
 	}
@@ -94,7 +94,7 @@ If a directory is provided, all files in the directory will be processed recursi
 			if err != nil {
 				return err
 			}
-			_, err = runFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, true)
+			_, err = callFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, true)
 			return err
 		},
 	}
@@ -115,7 +115,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = runFetch(client, args[0], callback, metadata)
+			_, err = callFilesFetch(client, args[0], callback, metadata)
 			return err
 
 		},
@@ -135,7 +135,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = runFileRetrieve(client, args[0])
+			_, err = callFileRetrieve(client, args[0])
 			return err
 		},
 	}
@@ -145,7 +145,7 @@ If a directory is provided, all files in the directory will be processed recursi
 
 }
 
-func runFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
+func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	if s == "" {
 		return nil, errors.New("id cannot be empty")
 	}
@@ -204,8 +204,8 @@ func runFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	return &result, nil
 }
 
-// runFetch processes a remote url
-func runFetch(client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
+// callFilesFetch processes a remote url
+func callFilesFetch(client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
 	slog.Debug("processing location", "url", location)
 
 	// verifying url
@@ -272,8 +272,8 @@ type resultRecord struct {
 	metadata      map[string]string
 }
 
-// runFileProcess processes a file or directory
-func runFileProcess(
+// callFileProcess processes a file or directory
+func callFileProcess(
 	client *v22.Client,
 	path string,
 	concurrencyLimit int,

@@ -65,6 +65,7 @@ func main() {
 	rootCmd.AddCommand(commands.ServerCommand())
 	rootCmd.AddCommand(commands.FileCommand())
 	rootCmd.AddCommand(commands.AccountCommand())
+	rootCmd.AddCommand(commands.AuthTokenCommand())
 
 	err := rootCmd.Execute()
 	if err != nil {

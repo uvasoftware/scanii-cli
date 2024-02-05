@@ -7,6 +7,7 @@ import (
 	"crypto/subtle"
 	"github.com/alexedwards/flow"
 	"github.com/google/uuid"
+	"log/slog"
 	"net/http"
 	"scanii-cli/internal/engine"
 	"scanii-cli/internal/identifiers"
@@ -36,20 +37,36 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				username, password, ok := r.BasicAuth()
 				if ok {
-					usernameHash := sha256.Sum256([]byte(username))
-					passwordHash := sha256.Sum256([]byte(password))
-					expectedUsernameHash := sha256.Sum256([]byte(key))
-					expectedPasswordHash := sha256.Sum256([]byte(secret))
 
-					usernameMatch := subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1
-					passwordMatch := subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1
+					// we allow two forms of authentication, API keys and auth tokens
+					if password == "" {
+						token := &AuthToken{}
+						err = handlers.store.load(username, token)
+						if err != nil {
+							slog.Error("failed to load token", "error", err)
+						} else {
+							ctxWithKey := context.WithValue(r.Context(), "key", token.Id)
+							ctx := context.WithValue(ctxWithKey, "key", token.Id)
+							next.ServeHTTP(w, r.WithContext(ctx))
+							return
+						}
 
-					if usernameMatch && passwordMatch {
-						ctxWithKey := context.WithValue(r.Context(), "key", username)
-						ctx := context.WithValue(ctxWithKey, "key", username)
+					} else {
+						usernameHash := sha256.Sum256([]byte(username))
+						passwordHash := sha256.Sum256([]byte(password))
+						expectedUsernameHash := sha256.Sum256([]byte(key))
+						expectedPasswordHash := sha256.Sum256([]byte(secret))
 
-						next.ServeHTTP(w, r.WithContext(ctx))
-						return
+						usernameMatch := subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1
+						passwordMatch := subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1
+
+						if usernameMatch && passwordMatch {
+							ctxWithKey := context.WithValue(r.Context(), "key", username)
+							ctx := context.WithValue(ctxWithKey, "key", username)
+
+							next.ServeHTTP(w, r.WithContext(ctx))
+							return
+						}
 					}
 				}
 
@@ -79,6 +96,14 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 		router.HandleFunc("/v2.2/files/:id", func(writer http.ResponseWriter, request *http.Request) {
 			handlers.RetrieveFile(writer, request, flow.Param(request.Context(), "id"))
 		}, "GET")
+
+		router.HandleFunc("/v2.2/auth/tokens", handlers.CreateToken, "POST")
+		router.HandleFunc("/v2.2/auth/tokens/:id", func(writer http.ResponseWriter, request *http.Request) {
+			handlers.RetrieveToken(writer, request, flow.Param(request.Context(), "id"))
+		}, "GET")
+		router.HandleFunc("/v2.2/auth/tokens/:id", func(writer http.ResponseWriter, request *http.Request) {
+			handlers.DeleteToken(writer, request, flow.Param(request.Context(), "id"))
+		}, "DELETE")
 	})
 
 }

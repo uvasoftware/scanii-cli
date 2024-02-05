@@ -6,7 +6,6 @@ toolchain go1.21.1
 
 require (
 	github.com/alexedwards/flow v0.0.0-20220806114457-cf11be9e0e03
-	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/getkin/kin-openapi v0.119.0

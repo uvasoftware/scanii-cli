@@ -11,7 +11,7 @@ func Test_runPing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create client: %s", err)
 	}
-	ping, err := runPing(client)
+	ping, err := callPingEndpoint(client)
 	if err != nil {
 		t.Fatalf("failed to run ping %s", err)
 	}

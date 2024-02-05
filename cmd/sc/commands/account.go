@@ -26,21 +26,10 @@ func AccountCommand() *cobra.Command {
 				return err
 			}
 
-			httpResponse, err := client.Account(context.Background())
+			pa, err := callAccountEndpoint(client)
 			if err != nil {
 				return err
 			}
-
-			if httpResponse.StatusCode != http.StatusOK {
-				return fmt.Errorf("unexpected parsedResponse response status: %d", httpResponse.StatusCode)
-			}
-
-			parsedAccount, err := v22.ParseAccountResponse(httpResponse)
-			if err != nil {
-				return err
-			}
-
-			pa := parsedAccount.JSON200
 
 			if pa.Name != nil {
 				fmt.Printf("Account: %s\n", *pa.Name)
@@ -102,4 +91,22 @@ func AccountCommand() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func callAccountEndpoint(client *v22.Client) (*v22.AccountInfo, error) {
+	r, err := client.Account(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected parsedResponse response status: %d", r.StatusCode)
+	}
+
+	parsedResponse, err := v22.ParseAccountResponse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return parsedResponse.JSON200, nil
 }
