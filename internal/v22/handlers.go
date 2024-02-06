@@ -135,8 +135,6 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	result.Metadata = metadata
-
 	// fetching content
 	slog.Debug("fetching content from", "location", location)
 	httpResponse, err := http.Get(location)
@@ -156,6 +154,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// saving result
+	result.Metadata = metadata
 	err = h.store.save(id, &result)
 	if err != nil {
 		h.renderServerError(w, err.Error())
