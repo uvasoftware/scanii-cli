@@ -12,10 +12,8 @@ func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header)
 		return err
 	}
 
-	if headers != nil {
-		for key, value := range headers {
-			w.Header()[key] = value
-		}
+	for key, value := range headers {
+		w.Header()[key] = value
 	}
 
 	w.Header().Set("Content-Type", "application/json")

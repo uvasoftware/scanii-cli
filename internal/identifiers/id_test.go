@@ -18,13 +18,10 @@ func TestGenerate(t *testing.T) {
 	}
 
 	for i := 0; i < iterations; i++ {
-		select {
-		case r := <-results:
-			if len(r) == 0 {
-				t.Fatalf("empty result")
-			}
+		r := <-results
+		if len(r) == 0 {
+			t.Fatalf("empty result")
 		}
-
 	}
 }
 func TestGenerateShort(t *testing.T) {
@@ -39,13 +36,10 @@ func TestGenerateShort(t *testing.T) {
 	}
 
 	for i := 0; i < iterations; i++ {
-		select {
-		case r := <-results:
-			if len(r) == 0 {
-				t.Fatalf("empty result")
-			}
+		r := <-results
+		if len(r) == 0 {
+			t.Fatalf("empty result")
 		}
-
 	}
 }
 

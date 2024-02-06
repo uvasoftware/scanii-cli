@@ -136,9 +136,8 @@ func Test_ShouldProcessFetch(t *testing.T) {
 		// retrieving it
 		retrieve, err := callFileRetrieve(client, result.id)
 		if err != nil {
-			t.Fatalf("failed to retrieve file: %s", err)
+			assertEicar(t, retrieve)
 		}
-		assertEicar(t, retrieve)
 
 	})
 

@@ -31,13 +31,6 @@ type Config struct {
 }
 
 func New() (*Engine, error) {
-	rules := make([]Rule, 0)
-
-	// default rule
-	rules = append(rules, Rule{
-		Format:  "sha256",
-		Content: "",
-	})
 
 	engine := &Engine{
 		config: &Config{
@@ -69,7 +62,7 @@ func (e *Engine) RuleCount() int {
 }
 
 type Result struct {
-	Id            string
+	ID            string
 	Sha1          string
 	Sha256        string
 	ContentLength uint64
