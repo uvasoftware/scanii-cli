@@ -74,6 +74,11 @@ run:
 # OPERATIONS
 # ==================================================================================== #
 
+## release-local: creates a new LOCAL release
+.PHONY: release-local
+release-local: tidy audit no-dirty
+	go run github.com/goreleaser/goreleaser@latest
+
 ## push: push changes to the remote Git repository
 .PHONY: push
 push: tidy audit no-dirty
