@@ -153,12 +153,6 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	startTime := time.Now()
 	slog.Debug("retrieving file", "id", s)
 
-	config, err := loadConfig()
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
-
 	file, err := client.RetrieveFile(context.Background(), s)
 	if err != nil {
 		return nil, err
