@@ -14,11 +14,11 @@ import (
 	"strings"
 )
 
-func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl string) {
+func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL string) {
 	handlers := FakeHandler{
 		engine:  eng,
 		store:   store{path: data},
-		baseurl: baseUrl,
+		baseurl: baseURL,
 	}
 
 	swagger, err := GetSwagger()
@@ -79,10 +79,10 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 			})
 		})
 		router.Use(func(next http.Handler) http.Handler {
-			hostId := "hst_" + identifiers.GenerateShort()
+			hostID := "hst_" + identifiers.GenerateShort()
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("XScaniiRequestId", "req_"+identifiers.GenerateShort())
-				w.Header().Set("XScaniiHostId", hostId)
+				w.Header().Set("XScaniiHostId", hostID)
 				next.ServeHTTP(w, r)
 			})
 
@@ -108,6 +108,6 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseUrl 
 
 }
 
-func generateId() string {
+func generateID() string {
 	return strings.Replace(uuid.New().String(), "-", "", -1)
 }

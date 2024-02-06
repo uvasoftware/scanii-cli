@@ -13,13 +13,14 @@ import (
 func AccountCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "account",
-		Short: "Account related operations",
+		Short: "API operations for the account resource",
+		Long:  `Account API operations. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/General/account`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config, err := loadConfig()
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.ApiKey)
+			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
 
 			client, err := createClient(config)
 			if err != nil {

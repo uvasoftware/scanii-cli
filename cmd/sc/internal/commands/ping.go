@@ -13,13 +13,14 @@ import (
 func PingCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ping",
-		Short: "Ping the Scanii API",
+		Short: "API operations for the ping resource",
+		Long:  `Ping API operation. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/General/ping`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config, err := loadConfig()
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.ApiKey)
+			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
 
 			client, err := createClient(config)
 			if err != nil {

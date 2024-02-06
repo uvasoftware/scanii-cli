@@ -81,7 +81,8 @@ func AuthTokenCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "auth-token",
-		Short: "Manage authentication tokens",
+		Short: "API operations for the authentication token resource",
+		Long:  `Auth Token API operations. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/Authentication%20Token`,
 	}
 
 	cmd.AddCommand(createCmd)

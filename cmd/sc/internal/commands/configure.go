@@ -45,8 +45,8 @@ func ConfigureCommand() *cobra.Command {
 				}
 
 				result, _ := prompt.Run()
-				config.ApiKey = strings.Split(result, ":")[0]
-				config.ApiSecret = strings.Split(result, ":")[1]
+				config.APIKey = strings.Split(result, ":")[0]
+				config.APISecret = strings.Split(result, ":")[1]
 
 				endpointSelect := promptui.Select{
 					Label: "Select endpoint to use",
@@ -63,8 +63,8 @@ func ConfigureCommand() *cobra.Command {
 					config.Endpoint = endpoint
 				}
 				if credentials != "" {
-					config.ApiKey = strings.Split(credentials, ":")[0]
-					config.ApiSecret = strings.Split(credentials, ":")[1]
+					config.APIKey = strings.Split(credentials, ":")[0]
+					config.APISecret = strings.Split(credentials, ":")[1]
 				}
 			}
 
@@ -83,8 +83,8 @@ func ConfigureCommand() *cobra.Command {
 }
 
 type configuration struct {
-	ApiKey    string    `json:"apiKey"`
-	ApiSecret string    `json:"apiSecret"`
+	APIKey    string    `json:"apiKey"`
+	APISecret string    `json:"apiSecret"`
 	Endpoint  string    `json:"endpoint"`
 	Updated   time.Time `json:"updated"`
 }
@@ -130,6 +130,10 @@ func loadConfig() (*configuration, error) {
 	}
 
 	contents, err := io.ReadAll(fd)
+	if err != nil {
+		return nil, err
+	}
+
 	err = json.Unmarshal(contents, &config)
 
 	if err != nil {

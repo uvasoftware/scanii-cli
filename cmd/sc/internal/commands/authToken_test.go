@@ -10,7 +10,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create client: %s", err)
 	}
-	var tokenId string
+	var tokenID string
 
 	// create:
 	targetTimeout := 10_000
@@ -32,13 +32,13 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 		t.Fatalf("expected expiration date to be %d seconds after creation date", targetTimeout)
 	}
 
-	tokenId = *token.Id
+	tokenID = *token.Id
 
 	t.Run("use", func(t *testing.T) {
 		// create a config copy
 		configCopy := *config
-		configCopy.ApiKey = tokenId
-		configCopy.ApiSecret = ""
+		configCopy.APIKey = tokenID
+		configCopy.APISecret = ""
 
 		client2, err := createClient(&configCopy)
 		if err != nil {
@@ -57,7 +57,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		found, err := callDeleteAuthToken(client, tokenId)
+		found, err := callDeleteAuthToken(client, tokenID)
 		if err != nil {
 			t.Fatalf("failed to delete token: %s", err)
 		}
@@ -67,10 +67,14 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 
 		// now we try to use it again and it should fail
 		configCopy := *config
-		configCopy.ApiKey = tokenId
-		configCopy.ApiSecret = ""
+		configCopy.APIKey = tokenID
+		configCopy.APISecret = ""
 
 		client2, err := createClient(&configCopy)
+		if err != nil {
+			t.Fatalf("failed to create client2: %s", err)
+		}
+
 		result, err := callFileProcess(client2, "testdata/eicar.txt", 1, true, "", false)
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)

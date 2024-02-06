@@ -33,8 +33,8 @@ func init() {
 	<-ready
 	config = &configuration{
 		Updated:   time.Now(),
-		ApiKey:    key,
-		ApiSecret: secret,
+		APIKey:    key,
+		APISecret: secret,
 		Endpoint:  endpoint,
 	}
 }

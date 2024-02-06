@@ -7,7 +7,9 @@ import (
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
-	"scanii-cli/cmd/sc/commands"
+	"runtime/debug"
+	"scanii-cli/cmd/sc/internal/commands"
+	"scanii-cli/internal/vcs"
 )
 
 var verbose bool
@@ -54,7 +56,15 @@ func main() {
 		Use:   "version",
 		Short: "Print application version and runtime information",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Hello version")
+			bi, _ := debug.ReadBuildInfo()
+			fmt.Println("------------------------------------------------------------")
+			fmt.Printf("%-15s: %s\n", "Version", vcs.Version())
+			fmt.Printf("%-15s: %s\n", "Go Version", bi.GoVersion)
+			fmt.Println("------------------------------------------------------------")
+			fmt.Println("Build settings:")
+			for _, e := range bi.Settings {
+				fmt.Printf("  %-15s: %s\n", e.Key, e.Value)
+			}
 		},
 	}
 

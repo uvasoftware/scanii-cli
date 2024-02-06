@@ -6,7 +6,7 @@ import (
 )
 
 func extractMetadataKey(content string) string {
-	regex := regexp.MustCompile("^metadata\\[(.*)]$")
+	regex := regexp.MustCompile(`^metadata\[(.*)]$`)
 	parts := regex.FindAllStringSubmatch(content, -1)
 	if len(parts) == 1 {
 		v := strings.Trim(parts[0][1], " ")

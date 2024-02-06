@@ -9,6 +9,9 @@ func TestShouldCallAccountEndpoint(t *testing.T) {
 	}
 
 	pa, err := callAccountEndpoint(client)
+	if err != nil {
+		t.Fatalf("failed to call account endpoint: %s", err)
+	}
 
 	if pa.Name == nil {
 		t.Fatalf("expected result to have a name")

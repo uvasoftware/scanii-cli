@@ -31,7 +31,7 @@ func FileCommand() *cobra.Command {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.ApiKey)
+		fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
 
 		client, err := createClient(config)
 		if err != nil {
@@ -54,7 +54,7 @@ func FileCommand() *cobra.Command {
 
 	parent := cobra.Command{
 		Use:   "files",
-		Short: "API operations around files",
+		Short: "API operations for the files resource",
 		Long:  `Files API operations. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/Files`,
 	}
 
@@ -157,7 +157,7 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.ApiKey)
+	fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
 
 	file, err := client.RetrieveFile(context.Background(), s)
 	if err != nil {
@@ -331,6 +331,10 @@ func callFileProcess(
 		return nil
 
 	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	if len(files) > 1 {
 		fmt.Printf("Found %s file(s)\n", humanize.Comma(int64(len(files))))

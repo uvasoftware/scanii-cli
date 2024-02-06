@@ -26,8 +26,8 @@ type FakeHandler struct {
 }
 
 func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
-	id := generateId()
-	result := engine.Result{Id: id}
+	id := generateID()
+	result := engine.Result{ID: id}
 	fileFound := false
 	metadata := make(map[string]string)
 
@@ -110,10 +110,10 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 
 func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 
-	id := generateId()
+	id := generateID()
 	metadata := make(map[string]string)
 	result := engine.Result{
-		Id: id,
+		ID: id,
 	}
 
 	err := r.ParseForm()
@@ -193,7 +193,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 		resp := ErrorResponse{
 			Error:    &result.Error,
 			Metadata: &result.Metadata,
-			Id:       &result.Id,
+			Id:       &result.ID,
 		}
 
 		err = writeJSON(w, http.StatusOK, resp, nil)
@@ -304,7 +304,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	id := generateId()
+	id := generateID()
 	creationDate := time.Now().UTC().Format(time.RFC3339)
 	expirationDate := time.Now().UTC().Add(time.Second * time.Duration(timeoutInSeconds)).Format(time.RFC3339)
 	token := &AuthToken{
@@ -358,7 +358,7 @@ func (h FakeHandler) RetrieveToken(w http.ResponseWriter, _ *http.Request, id st
 func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 
 	result := engine.Result{}
-	id := generateId()
+	id := generateID()
 	fileFound, locationFound := false, false
 	metadata := make(map[string]string)
 
