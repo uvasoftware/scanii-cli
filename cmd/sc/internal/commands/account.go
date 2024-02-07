@@ -104,6 +104,7 @@ func callAccountEndpoint(client *v22.Client) (*v22.AccountInfo, error) {
 		return nil, fmt.Errorf("unexpected parsedResponse response status: %d", r.StatusCode)
 	}
 
+	defer r.Body.Close()
 	parsedResponse, err := v22.ParseAccountResponse(r)
 	if err != nil {
 		return nil, err

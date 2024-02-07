@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"context"
+	//nolint // we need to use sha1 from crypto package
 	sha1hash "crypto/sha1"
 	"errors"
 	"fmt"
@@ -157,6 +158,7 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Body.Close()
 
 	if file.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("error retrieving file with id %s, status code %d", s, file.StatusCode)
@@ -194,7 +196,7 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 		result.err = *parsedResult.JSON200.Error
 	}
 
-	printFileResult(result)
+	printFileResult(&result)
 	return &result, nil
 }
 
@@ -226,6 +228,7 @@ func callFilesFetch(client *v22.Client, location, callback, metadata string) (*r
 	if err != nil {
 		return nil, err
 	}
+	defer httpResponse.Body.Close()
 
 	parsedResult, err := v22.ParseProcessFileFetchResponse(httpResponse)
 	if err != nil {
@@ -245,7 +248,7 @@ func callFilesFetch(client *v22.Client, location, callback, metadata string) (*r
 	}
 	fmt.Printf("Location: %s\n", httpResponse.Header.Get("Location"))
 	fmt.Println()
-	fmt.Printf("Protip: you can retrive the result by running: `sc files retrieve %s`\n", *parsedResult.JSON202.Id)
+	fmt.Printf("Protip: you can retrieve the result by running: `sc files retrieve %s`\n", *parsedResult.JSON202.Id)
 
 	return &resultRecord{
 		id:       *parsedResult.JSON202.Id,
@@ -274,7 +277,7 @@ func callFileProcess(
 	ignoreHidden bool,
 	metadata string,
 	async bool,
-) ([]resultRecord, error) {
+) ([]*resultRecord, error) {
 	slog.Debug("processing file", "path", path)
 	slog.Debug("concurrency limit", "limit", concurrencyLimit)
 	slog.Debug("ignore hidden", "ignore", ignoreHidden)
@@ -368,7 +371,7 @@ func callFileProcess(
 				// firing off multipart stream producer, so we don't need to buffer it in-memory
 				go func() {
 					// let's also verify the checksum while reading the file to avoid buffering it in memory
-					sha1 := sha1hash.New()
+					sha1 := sha1hash.New() //nolint:gosec
 					fdAndShaReader := io.TeeReader(fd, sha1)
 
 					filePartWriter, err := mpb.CreateFormFile("file", filepath.Base(p))
@@ -406,6 +409,7 @@ func callFileProcess(
 				case false:
 					var localErr error
 
+					//nolint
 					resp, localErr := client.ProcessFileWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
 					if localErr != nil {
 						slog.Error("could not process file", "error", localErr.Error())
@@ -414,6 +418,7 @@ func callFileProcess(
 					}
 
 					v, localErr := v22.ParseProcessFileResponse(resp)
+
 					if localErr != nil {
 						slog.Error("could not parse response", "error", localErr.Error())
 						r.err = localErr.Error()
@@ -455,6 +460,7 @@ func callFileProcess(
 
 					}
 				case true:
+					//nolint:bodyclose // parse closes the body
 					resp, err := client.ProcessFileAsyncWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
 					if err != nil {
 						slog.Error("could not process file", "error", err.Error())
@@ -493,13 +499,13 @@ func callFileProcess(
 	}()
 
 	pb := progressbar.Default(int64(len(files)), "Processing files")
-	results := make([]resultRecord, 0)
+	results := make([]*resultRecord, 0)
 	successCounter, errorCounter, findingsCounter := 0, 0, 0
 
 	// waiting for results:
 	for i := 0; i < len(files); i++ {
 		result := <-resultChan
-		results = append(results, result)
+		results = append(results, &result)
 
 		if result.err != "" {
 			errorCounter++
@@ -574,7 +580,7 @@ func extractMedata(metadata string) map[string]string {
 	return result
 }
 
-func printFileResult(result resultRecord) {
+func printFileResult(result *resultRecord) {
 	fmt.Printf("------\n")
 
 	if result.path != "" {
@@ -627,7 +633,7 @@ func printFileResult(result resultRecord) {
 	fmt.Printf("------\n")
 }
 
-func runLocationProcess(client *v22.Client, location string, callback string, metadata string) (*resultRecord, error) {
+func runLocationProcess(client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
 	slog.Debug("processing location", "url", location)
 
 	// verifying url
@@ -670,6 +676,8 @@ func runLocationProcess(client *v22.Client, location string, callback string, me
 		return nil, err
 	}
 
+	defer httpResponse.Body.Close()
+
 	parsedResult, err := v22.ParseProcessFileResponse(httpResponse)
 	if err != nil {
 		return nil, err
@@ -703,6 +711,6 @@ func runLocationProcess(client *v22.Client, location string, callback string, me
 		r.metadata = *parsedResult.JSON201.Metadata
 	}
 
-	printFileResult(r)
+	printFileResult(&r)
 	return &r, nil
 }

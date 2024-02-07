@@ -96,6 +96,8 @@ func callDeleteAuthToken(client *v22.Client, s string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	defer httpResp.Body.Close()
+
 	if httpResp.StatusCode != 204 {
 		slog.Error("failed to delete token", "status", httpResp.Status)
 		return false, nil
@@ -106,9 +108,13 @@ func callDeleteAuthToken(client *v22.Client, s string) (bool, error) {
 
 func callRetrieveAuthToken(client *v22.Client, s string) (*v22.AuthToken, error) {
 	httpResp, err := client.RetrieveToken(context.Background(), s)
+
 	if err != nil {
 		return nil, err
 	}
+
+	defer httpResp.Body.Close()
+
 	if httpResp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to create token: %s", httpResp.Status)
 	}
@@ -127,6 +133,8 @@ func callCreateAuthToken(client *v22.Client, timeoutInSeconds int) (*v22.AuthTok
 	if err != nil {
 		return nil, err
 	}
+	defer httpResp.Body.Close()
+
 	if httpResp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to create token: %s", httpResp.Status)
 	}

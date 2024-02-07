@@ -14,10 +14,6 @@ import (
 
 var verbose bool
 
-func init() {
-
-}
-
 func main() {
 
 	rootCmd := &cobra.Command{
@@ -69,13 +65,13 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(commands.ConfigureCommand())
 	rootCmd.AddCommand(commands.PingCommand())
-	rootCmd.AddCommand(commands.ServerCommand())
 	rootCmd.AddCommand(commands.FileCommand())
 	rootCmd.AddCommand(commands.AccountCommand())
 	rootCmd.AddCommand(commands.AuthTokenCommand())
+	rootCmd.AddCommand(commands.ServerCommand())
+	rootCmd.AddCommand(commands.ConfigureCommand())
+	rootCmd.AddCommand(versionCmd)
 
 	err := rootCmd.Execute()
 	if err != nil {

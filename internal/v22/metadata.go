@@ -10,7 +10,7 @@ func extractMetadataKey(content string) string {
 	parts := regex.FindAllStringSubmatch(content, -1)
 	if len(parts) == 1 {
 		v := strings.Trim(parts[0][1], " ")
-		if len(v) > 0 {
+		if v != "" {
 			return v
 		}
 	}

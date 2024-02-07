@@ -14,7 +14,13 @@ import (
 	"strings"
 )
 
-func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL string) {
+type contextKey int
+
+const (
+	keyInContext contextKey = iota
+)
+
+func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data, baseURL string) {
 	handlers := FakeHandler{
 		engine:  eng,
 		store:   store{path: data},
@@ -32,7 +38,6 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL 
 
 	mux.Group(func(router *flow.Mux) {
 
-		//router.Use(middleware.OapiRequestValidator(swagger))
 		router.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				username, password, ok := r.BasicAuth()
@@ -45,8 +50,7 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL 
 						if err != nil {
 							slog.Error("failed to load token", "error", err)
 						} else {
-							ctxWithKey := context.WithValue(r.Context(), "key", token.Id)
-							ctx := context.WithValue(ctxWithKey, "key", token.Id)
+							ctx := context.WithValue(r.Context(), keyInContext, token.Id)
 							next.ServeHTTP(w, r.WithContext(ctx))
 							return
 						}
@@ -61,9 +65,7 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL 
 						passwordMatch := subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1
 
 						if usernameMatch && passwordMatch {
-							ctxWithKey := context.WithValue(r.Context(), "key", username)
-							ctx := context.WithValue(ctxWithKey, "key", username)
-
+							ctx := context.WithValue(r.Context(), keyInContext, username)
 							next.ServeHTTP(w, r.WithContext(ctx))
 							return
 						}
@@ -81,8 +83,8 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL 
 		router.Use(func(next http.Handler) http.Handler {
 			hostID := "hst_" + identifiers.GenerateShort()
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("XScaniiRequestId", "req_"+identifiers.GenerateShort())
-				w.Header().Set("XScaniiHostId", hostID)
+				w.Header().Set(`X-Scanii-Request-Id`, "req_"+identifiers.GenerateShort())
+				w.Header().Set(`X-Scanii-Host-Id`, hostID)
 				next.ServeHTTP(w, r)
 			})
 
@@ -109,5 +111,5 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data string, baseURL 
 }
 
 func generateID() string {
-	return strings.Replace(uuid.New().String(), "-", "", -1)
+	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }
