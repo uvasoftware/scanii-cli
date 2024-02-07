@@ -12,7 +12,14 @@ import (
 	"scanii-cli/internal/vcs"
 )
 
-var verbose bool
+var (
+	verbose bool
+
+	// These variables are set in the build step
+	version = "dev"     //nolint
+	commit  = "none"    //nolint
+	date    = "unknown" //nolint
+)
 
 func main() {
 
@@ -55,6 +62,7 @@ func main() {
 			bi, _ := debug.ReadBuildInfo()
 			fmt.Println("------------------------------------------------------------")
 			fmt.Printf("%-15s: %s\n", "Version", vcs.Version())
+			fmt.Printf("%-15s: %s\n", "Built", date)
 			fmt.Printf("%-15s: %s\n", "Go Version", bi.GoVersion)
 			fmt.Println("------------------------------------------------------------")
 			fmt.Println("Build settings:")
