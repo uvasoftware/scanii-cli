@@ -9,8 +9,7 @@ builds:
       - darwin
     main: ./cmd/sc/main.go
     binary: sc
-    ldflags: -s
-
+    ldflags: -s -w -X main.version={{.Version}} -X main.date={{.Date}}
 
 
 dockers:
