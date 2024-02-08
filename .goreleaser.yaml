@@ -15,7 +15,7 @@ builds:
 
 dockers:
   - image_templates:
-      - "grc.io/uvasoftware/scanii-cli:latest"
+      - "ghcr.io/uvasoftware/scanii-cli:{{.Tag}}"
 report_sizes: true
 archives:
   - format: tar.gz
