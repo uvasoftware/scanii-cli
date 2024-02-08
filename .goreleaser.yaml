@@ -11,6 +11,11 @@ builds:
     binary: sc
     ldflags: -s
 
+
+
+dockers:
+  - image_templates:
+      - "grc.io/uvasoftware/scanii-cli:latest"
 report_sizes: true
 archives:
   - format: tar.gz
