@@ -19,20 +19,20 @@ xattr -d com.apple.quarantine /path/to/file
 A docker container is also provided for running the cli.
 
 ```shell
- % docker run ghcr.io/uvasoftware/scanii-cli:latest
+docker run ghcr.io/uvasoftware/scanii-cli:latest
 ```
 Previous container versions can be found [here](https://github.com/uvasoftware/scanii-cli/pkgs/container/scanii-cli). 
 
 ## Documentation 
 
 * You should start by configuring the CLI with your API key. You can do this by running `sc configure` and following the prompts.
-* Once configured, you can start the mock server by running `sc server` and then start sending requests to it.
+* Once configured, you can start the test server by running `sc server` and then start sending requests to it.
 * All other commands are available by running `sc help`
 
 Here's an example of using the cli to analyze a directory of files:
 
 ```shell
-% ./sc files process .                             
+./sc files process .                             
 ⎻⎻⎻⎻
 Using endpoint: localhost:4000 and API key: key
 success in 4.421542ms
@@ -89,7 +89,7 @@ Files with findings:
 
 Running the mock server: 
 ```shell
-% .sc server         
+./sc server         
 Scanii test server is starting... 🚀
 ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
 • Using API Key: key
@@ -100,8 +100,16 @@ Scanii test server is starting... 🚀
 Sample usage → curl -u key:secret http://localhost:4000/v2.2/ping
 ```
 
-### Known Limitations
-#### Mock Server
-* Callbacks are not supported in the current version of the library.
+#### How the test server works
+The test server works by comparing the files sent against a static signature database.The built in signature 
+[database](https://github.com/uvasoftware/scanii-cli/blob/main/internal/engine/default.json) includes rules for EICAR and other sample files you can use to test your integration. 
+
+For more sophisticated use cases, you can provide your own configuration to test server with the `--engine` flag. 
+
+```shell
+
+#### Known Limitations
+Mock Server
+* Callbacks are not supported in the current version of the mock server
 * The engine does not really do any analysis, it simply compares files against a signature database
 * Requests that fail to retrieve an external location are not saved
