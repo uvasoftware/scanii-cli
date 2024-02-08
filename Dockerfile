@@ -1,3 +1,3 @@
 FROM scratch
+COPY sc /sc
 ENTRYPOINT ["/sc"]
-COPY dist/sc /
