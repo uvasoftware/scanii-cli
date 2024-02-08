@@ -1,4 +1,4 @@
-name: PR Audit
+name: pr
 
 on:
   pull_request:
