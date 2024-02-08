@@ -32,7 +32,8 @@ func FileCommand() *cobra.Command {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
+		fmt.Println("⎻⎻⎻⎻")
+		fmt.Printf("Using endpoint: %s and API key: %s\n", config.Endpoint, config.APIKey)
 
 		client, err := createClient(config)
 		if err != nil {
@@ -40,7 +41,6 @@ func FileCommand() *cobra.Command {
 		}
 
 		// validating credentials
-		fmt.Printf("Checking credentials...\n")
 		if ok, err := callPingEndpoint(client); ok {
 			fmt.Printf("✔ Credentials worked against %s\n", client.Server)
 
@@ -270,14 +270,7 @@ type resultRecord struct {
 }
 
 // callFileProcess processes a file or directory
-func callFileProcess(
-	client *v22.Client,
-	path string,
-	concurrencyLimit int,
-	ignoreHidden bool,
-	metadata string,
-	async bool,
-) ([]*resultRecord, error) {
+func callFileProcess(client *v22.Client, path string, concurrencyLimit int, ignoreHidden bool, metadata string, async bool) ([]*resultRecord, error) {
 	slog.Debug("processing file", "path", path)
 	slog.Debug("concurrency limit", "limit", concurrencyLimit)
 	slog.Debug("ignore hidden", "ignore", ignoreHidden)
