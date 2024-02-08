@@ -12,11 +12,14 @@ import (
 	"scanii-cli/internal/vcs"
 )
 
-var verbose bool
+var (
+	verbose bool
 
-func init() {
-
-}
+	// These variables are set in the build step
+	version = "dev"     //nolint
+	commit  = "none"    //nolint
+	date    = "unknown" //nolint
+)
 
 func main() {
 
@@ -59,6 +62,7 @@ func main() {
 			bi, _ := debug.ReadBuildInfo()
 			fmt.Println("------------------------------------------------------------")
 			fmt.Printf("%-15s: %s\n", "Version", vcs.Version())
+			fmt.Printf("%-15s: %s\n", "Built", date)
 			fmt.Printf("%-15s: %s\n", "Go Version", bi.GoVersion)
 			fmt.Println("------------------------------------------------------------")
 			fmt.Println("Build settings:")
@@ -69,13 +73,13 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(commands.ConfigureCommand())
 	rootCmd.AddCommand(commands.PingCommand())
-	rootCmd.AddCommand(commands.ServerCommand())
 	rootCmd.AddCommand(commands.FileCommand())
 	rootCmd.AddCommand(commands.AccountCommand())
 	rootCmd.AddCommand(commands.AuthTokenCommand())
+	rootCmd.AddCommand(commands.ServerCommand())
+	rootCmd.AddCommand(commands.ConfigureCommand())
+	rootCmd.AddCommand(versionCmd)
 
 	err := rootCmd.Execute()
 	if err != nil {

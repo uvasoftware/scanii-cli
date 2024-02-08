@@ -29,7 +29,7 @@ type serverFlags struct {
 	readyChan chan bool
 }
 
-func runServer(flags serverFlags) {
+func runServer(flags *serverFlags) {
 	if flags.key == "" {
 		fmt.Println("No API key provided, generating one...")
 		flags.key = fmt.Sprintf("akk_%s", identifiers.GenerateShort())
@@ -88,15 +88,16 @@ func runServer(flags serverFlags) {
 	}
 	slog.Debug("storage directory", "path", flags.data)
 
-	fmt.Println("----")
-	fmt.Println("Scanii mock server is starting...")
-	fmt.Println("→ using API Key:", flags.key)
-	fmt.Println("→ using API Secret:", flags.secret)
-	fmt.Printf("→ engines with %d known rules\n", eng.RuleCount())
+	fmt.Println("Scanii test server is starting... 🚀")
+	fmt.Println("⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻")
+	fmt.Println("• Using API Key:", flags.key)
+	fmt.Println("• Using API Secret:", flags.secret)
+	fmt.Printf("• Engines with %d known rules\n", eng.RuleCount())
 	//goland:noinspection HttpUrlsUsage
-	fmt.Printf("✔️ Mock server started on http://%s 🚀\n", flags.address)
+	fmt.Printf("• Mock server started on http://%s\n", flags.address)
+	fmt.Println()
 	//goland:noinspection HttpUrlsUsage
-	fmt.Printf("sample usage: curl -u %s:%s http://%s/v2.2/ping\n", flags.key, flags.secret, flags.address)
+	fmt.Printf("Sample usage → curl -u %s:%s http://%s/v2.2/ping\n", flags.key, flags.secret, flags.address)
 
 	listen, err := net.Listen("tcp", flags.address)
 	if err != nil {
@@ -121,7 +122,7 @@ func ServerCommand() *cobra.Command {
 	serverCmd := &cobra.Command{
 		Use: "server",
 		Run: func(cmd *cobra.Command, args []string) {
-			runServer(serverF)
+			runServer(&serverF)
 		},
 		Short: "Starts a mock server suitable for testing purposes",
 	}

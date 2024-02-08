@@ -157,7 +157,7 @@ func saveConfig(config *configuration) error {
 		return err
 	}
 
-	err = os.WriteFile(cp, js, 0644)
+	err = os.WriteFile(cp, js, 0600)
 	if err != nil {
 		return err
 

@@ -2,7 +2,7 @@ package engine
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha1" //nolint want "crypto/sha1 is not recommended"[:<gosec>]
 	"crypto/sha256"
 	_ "embed"
 	"encoding/json"
@@ -79,7 +79,7 @@ func (e *Engine) Process(contents io.Reader) (Result, error) {
 	}
 
 	result.Findings = []string{}
-	s1 := sha1.New()
+	s1 := sha1.New() //nolint:gosec
 	s2 := sha256.New()
 	dest := io.MultiWriter(s1, s2)
 

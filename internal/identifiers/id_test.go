@@ -19,7 +19,7 @@ func TestGenerate(t *testing.T) {
 
 	for i := 0; i < iterations; i++ {
 		r := <-results
-		if len(r) == 0 {
+		if r == "" {
 			t.Fatalf("empty result")
 		}
 	}
@@ -37,7 +37,7 @@ func TestGenerateShort(t *testing.T) {
 
 	for i := 0; i < iterations; i++ {
 		r := <-results
-		if len(r) == 0 {
+		if r == "" {
 			t.Fatalf("empty result")
 		}
 	}

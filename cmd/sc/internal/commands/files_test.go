@@ -37,7 +37,7 @@ func Test_ShouldProcessSync(t *testing.T) {
 		t.Fatalf("expected 1 result, got %d", len(results))
 	}
 
-	assertEicar(t, &results[0])
+	assertEicar(t, results[0])
 
 }
 

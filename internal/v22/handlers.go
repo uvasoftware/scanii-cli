@@ -1,6 +1,7 @@
 package v22
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -18,6 +19,8 @@ var (
 	errorArgMissing          = "A required argument is missing"
 	errorCloudNotDownload    = "Sadly, we could not download content for processing due to a network error."
 )
+
+const basePath = "/v2.2/files/"
 
 type FakeHandler struct {
 	engine  *engine.Engine
@@ -39,7 +42,7 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 		}
@@ -58,7 +61,6 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 				h.renderServerError(w, err.Error())
 				return
 			}
-
 		}
 
 		if strings.HasPrefix(part.FormName(), "metadata[") {
@@ -99,13 +101,12 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headers := http.Header{}
-	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
+	headers.Set("Location", h.baseurl+basePath+id)
 
 	err = writeJSON(w, http.StatusAccepted, resp, headers)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
-
 }
 
 func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
@@ -137,10 +138,18 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 
 	// fetching content
 	slog.Debug("fetching content from", "location", location)
-	httpResponse, err := http.Get(location)
+	//nolint:gosec
+	request, err := http.NewRequestWithContext(r.Context(), http.MethodGet, location, http.NoBody)
+	if err != nil {
+		h.renderServerError(w, err.Error())
+		return
+	}
+
+	httpResponse, err := http.DefaultClient.Do(request)
 	if err != nil {
 		h.renderClientError(http.StatusBadRequest, w, err.Error())
 	}
+	defer httpResponse.Body.Close()
 
 	if httpResponse.StatusCode == http.StatusOK {
 		// performing analysis, it has to happen while we're parsing the stream
@@ -162,7 +171,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headers := http.Header{}
-	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
+	headers.Set("Location", h.baseurl+basePath+id)
 
 	// sending response
 	resp := ProcessingPendingResponse{
@@ -221,7 +230,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 }
 
 func (h FakeHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	key := r.Context().Value("key").(string)
+	key := r.Context().Value(keyInContext).(string)
 
 	resp := map[string]string{
 		"message": "pong",
@@ -236,7 +245,7 @@ func (h FakeHandler) Ping(w http.ResponseWriter, r *http.Request) {
 
 func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
 
-	key := r.Context().Value("key").(string)
+	key := r.Context().Value(keyInContext).(string)
 
 	// account basically returns made up stuff
 	balance := float32(42_000)
@@ -325,7 +334,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h FakeHandler) DeleteToken(w http.ResponseWriter, r *http.Request, id string) {
+func (h FakeHandler) DeleteToken(w http.ResponseWriter, _ *http.Request, id string) {
 	found, err := h.store.remove(id)
 	if !found {
 		h.renderClientError(http.StatusNotFound, w, "could not find token")
@@ -368,10 +377,8 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	}
 	for {
 		part, err := reader.NextPart()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
+		if errors.Is(err, io.EOF) {
+			break
 		}
 		// odd but can happen:
 		if part == nil {
@@ -413,11 +420,17 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 			location := builder.String()
 			// fetching content
 			slog.Debug("fetching content from", "location", location)
-			resp, err := http.Get(location)
+			req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, location, http.NoBody)
+			if err != nil {
+				h.renderServerError(w, err.Error())
+				return
+			}
+			resp, err := http.DefaultClient.Do(req) //nolint:gosec
 			if err != nil {
 				h.renderClientError(http.StatusBadRequest, w, err.Error())
 				return
 			}
+			defer resp.Body.Close() //nolint
 			if resp.StatusCode == http.StatusOK {
 				// performing analysis, it has to happen while we're parsing the stream
 				result, err = h.engine.Process(resp.Body)
@@ -472,7 +485,7 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	headers := http.Header{}
-	headers.Set("Location", h.baseurl+"/v2.2/files/"+id)
+	headers.Set("Location", h.baseurl+basePath+id)
 
 	err = writeJSON(w, http.StatusCreated, foo, headers)
 	if err != nil {

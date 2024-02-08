@@ -43,7 +43,7 @@ func callPingEndpoint(client *v22.Client) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
+	defer r.Body.Close()
 	if r.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("unexpected parsedResponse response status: %d", r.StatusCode)
 	}

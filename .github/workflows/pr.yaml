@@ -1,29 +1,37 @@
-name: PR Audit
+name: pr
 
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
-
   audit:
-    runs-on: ${{ matrix.os }}
-    strategy:
-       matrix:
-          os: [ ubuntu-latest, windows-latest , macOS-latest]
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: 1.21
 
       - name: Audit
         run: make audit
 
-      - name: Build
-        run: make build
+  test:
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest , macOS-latest]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
 
       - name: Run tests
         run: make test

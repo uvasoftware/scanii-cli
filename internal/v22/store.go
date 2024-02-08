@@ -2,6 +2,7 @@ package v22
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -43,7 +44,7 @@ func (s store) save(key string, v any) error {
 	}
 
 	dest := filepath.Join(s.path, fmt.Sprintf("%s.json", key))
-	err = os.WriteFile(dest, js, 0644)
+	err = os.WriteFile(dest, js, 0600)
 	if err != nil {
 		return err
 	}
@@ -56,8 +57,7 @@ func (s store) remove(key string) (bool, error) {
 	dest := filepath.Join(s.path, fmt.Sprintf("%s.json", key))
 	err := os.Remove(dest)
 	if err != nil {
-		switch err {
-		case os.ErrNotExist:
+		if errors.Is(err, os.ErrNotExist) {
 			return false, nil
 		}
 		return false, err

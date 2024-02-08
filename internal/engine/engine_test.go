@@ -29,7 +29,7 @@ func TestIdentifyEicar(t *testing.T) {
 	}
 
 	if result.ContentLength == 0 {
-		t.Fatalf("content lenght was not calculated")
+		t.Fatalf("content length was not calculated")
 	}
 
 	if result.Findings[0] != "content.malicious.eicar-test-signature" {
