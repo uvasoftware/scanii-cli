@@ -23,11 +23,7 @@ func ConfigureCommand() *cobra.Command {
 		Use:   "configure",
 		Short: "Configure the CLI",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
-			if err != nil {
-				println("could not load config file")
-				return err
-			}
+			config := &configuration{}
 
 			if endpoint == "" && credentials == "" {
 
@@ -50,7 +46,7 @@ func ConfigureCommand() *cobra.Command {
 
 				endpointSelect := promptui.Select{
 					Label: "Select endpoint to use",
-					Items: []string{"api-us1.scanii.com", "api-eu1.scanii.com", "api-eu2.scanii.com", "api-ap1.scanii.com", "api-ap2.scanii.com"},
+					Items: []string{"api-us1.scanii.com", "api-eu1.scanii.com", "api-eu2.scanii.com", "api-ap1.scanii.com", "api-ap2.scanii.com", "localhost:4000"},
 				}
 				_, selectedEndpoint, err2 := endpointSelect.Run()
 				if err2 != nil {
@@ -68,7 +64,7 @@ func ConfigureCommand() *cobra.Command {
 				}
 			}
 
-			err = saveConfig(config)
+			err := saveConfig(config)
 			if err != nil {
 				return err
 			}

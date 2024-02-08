@@ -101,7 +101,7 @@ func callAccountEndpoint(client *v22.Client) (*v22.AccountInfo, error) {
 	}
 
 	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected parsedResponse response status: %d", r.StatusCode)
+		return nil, fmt.Errorf("unexpected http response status: %d", r.StatusCode)
 	}
 
 	defer r.Body.Close()
