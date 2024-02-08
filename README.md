@@ -16,6 +16,13 @@ On MacOS you will need to grant the application permission to run
 xattr -d com.apple.quarantine /path/to/file
 ```
 
+A docker container is also provided for running the cli.
+
+```shell
+ % docker run ghcr.io/uvasoftware/scanii-cli:latest
+```
+Previous container versions can be found [here](https://github.com/uvasoftware/scanii-cli/pkgs/container/scanii-cli). 
+
 ## Documentation 
 
 * You should start by configuring the CLI with your API key. You can do this by running `sc configure` and following the prompts.
