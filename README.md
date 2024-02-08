@@ -107,6 +107,8 @@ The test server works by comparing the files sent against a static signature dat
 For more sophisticated use cases, you can provide your own configuration to test server with the `--engine` flag. 
 
 ```shell
+./sc server --engine /path/to/your/engine.json
+```
 
 #### Known Limitations
 Mock Server
