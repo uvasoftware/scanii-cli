@@ -95,7 +95,8 @@ linters:
     - gocheckcompilerdirectives
     - goconst
     - gocritic
-    - gofmt
+    # no supported on windows:
+    # - gofmt
     - goprintffuncname
     - gosec
     - gosimple
