@@ -7,6 +7,9 @@ builds:
       - linux
       - windows
       - darwin
+    main: ./cmd/sc/main.go
+    ldflags: -s
+
 report_sizes: true
 archives:
   - format: tar.gz
@@ -31,7 +34,6 @@ changelog:
       - "^test:"
 
 build:
-  main: ./cmd/sc/main.go
 
 gomod:
   mod: mod
