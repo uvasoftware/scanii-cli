@@ -1,6 +1,6 @@
 # Scanii CLI
 
-The Scanii CLI helps you build, test, and manage your [Scanii](https://wwww.scanii.com) integration right from the terminal.
+The Scanii CLI helps you build, test, and manage your [Scanii](https://www.scanii.com) integration right from the terminal.
 
 **With the CLI, you can:**
 
