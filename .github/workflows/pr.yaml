@@ -7,10 +7,7 @@ on:
 jobs:
   audit:
     timeout-minutes: 5
-    runs-on: ${{ matrix.os }}
-    strategy:
-       matrix:
-          os: [ ubuntu-latest, windows-latest , macOS-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -22,8 +19,19 @@ jobs:
       - name: Audit
         run: make audit
 
-      - name: Build
-        run: make build
+  test:
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest , macOS-latest]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
 
       - name: Run tests
         run: make test
