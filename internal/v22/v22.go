@@ -7,10 +7,10 @@ import (
 	"crypto/subtle"
 	"github.com/alexedwards/flow"
 	"github.com/google/uuid"
+	"github.com/uvasoftware/scanii-cli/internal/engine"
+	"github.com/uvasoftware/scanii-cli/internal/identifiers"
 	"log/slog"
 	"net/http"
-	"scanii-cli/internal/engine"
-	"scanii-cli/internal/identifiers"
 	"strings"
 )
 

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -14,7 +15,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 
 	// create:
 	targetTimeout := 10_000
-	token, err := callCreateAuthToken(client, targetTimeout)
+	token, err := callCreateAuthToken(context.Background(), client, targetTimeout)
 	if err != nil {
 		t.Fatalf("failed to create token: %s", err)
 	}
@@ -45,7 +46,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 			t.Fatalf("failed to create client2: %s", err)
 		}
 		// now try to use it
-		result, err := callFileProcess(client2, "testdata/eicar.txt", 1, true, "", false)
+		result, err := callFileProcess(context.Background(), client2, "testdata/eicar.txt", 1, true, "", false)
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}
@@ -57,7 +58,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		found, err := callDeleteAuthToken(client, tokenID)
+		found, err := callDeleteAuthToken(context.Background(), client, tokenID)
 		if err != nil {
 			t.Fatalf("failed to delete token: %s", err)
 		}
@@ -75,7 +76,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 			t.Fatalf("failed to create client2: %s", err)
 		}
 
-		result, err := callFileProcess(client2, "testdata/eicar.txt", 1, true, "", false)
+		result, err := callFileProcess(context.Background(), client2, "testdata/eicar.txt", 1, true, "", false)
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}

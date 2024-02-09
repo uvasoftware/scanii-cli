@@ -1,4 +1,4 @@
-module scanii-cli
+module github.com/uvasoftware/scanii-cli
 
 go 1.22
 

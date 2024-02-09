@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"log/slog"
 	"net/url"
-	v22 "scanii-cli/internal/v22"
 	"strconv"
 	"strings"
 )
 
-func AuthTokenCommand() *cobra.Command {
+func AuthTokenCommand(ctx context.Context) *cobra.Command {
+	timeout := 300
+
 	createCmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new authentication token",
@@ -24,14 +26,17 @@ func AuthTokenCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_, err = callCreateAuthToken(client, 3600)
+			token, err := callCreateAuthToken(ctx, client, timeout)
 			if err != nil {
 				return err
 			}
 
+			printToken(token)
 			return nil
 		},
 	}
+
+	createCmd.PersistentFlags().IntVarP(&timeout, "timeout", "t", 300, "Timeout for created token in seconds")
 
 	retrieveCmd := &cobra.Command{
 		Use:        "retrieve [id]",
@@ -47,11 +52,12 @@ func AuthTokenCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_, err = callRetrieveAuthToken(client, args[0])
+			token, err := callRetrieveAuthToken(ctx, client, args[0])
 			if err != nil {
 				return err
 			}
 
+			printToken(token)
 			return nil
 		},
 	}
@@ -70,11 +76,12 @@ func AuthTokenCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_, err = callDeleteAuthToken(client, args[0])
+			_, err = callDeleteAuthToken(ctx, client, args[0])
 			if err != nil {
 				return err
 			}
 
+			fmt.Println("Token deleted")
 			return nil
 		},
 	}
@@ -91,8 +98,8 @@ func AuthTokenCommand() *cobra.Command {
 	return cmd
 }
 
-func callDeleteAuthToken(client *v22.Client, s string) (bool, error) {
-	httpResp, err := client.DeleteToken(context.Background(), s)
+func callDeleteAuthToken(ctx context.Context, client *v22.Client, s string) (bool, error) {
+	httpResp, err := client.DeleteToken(ctx, s)
 	if err != nil {
 		return false, err
 	}
@@ -106,8 +113,8 @@ func callDeleteAuthToken(client *v22.Client, s string) (bool, error) {
 
 }
 
-func callRetrieveAuthToken(client *v22.Client, s string) (*v22.AuthToken, error) {
-	httpResp, err := client.RetrieveToken(context.Background(), s)
+func callRetrieveAuthToken(ctx context.Context, client *v22.Client, s string) (*v22.AuthToken, error) {
+	httpResp, err := client.RetrieveToken(ctx, s)
 
 	if err != nil {
 		return nil, err
@@ -126,10 +133,10 @@ func callRetrieveAuthToken(client *v22.Client, s string) (*v22.AuthToken, error)
 	return token.JSON200, nil
 }
 
-func callCreateAuthToken(client *v22.Client, timeoutInSeconds int) (*v22.AuthToken, error) {
+func callCreateAuthToken(ctx context.Context, client *v22.Client, timeoutInSeconds int) (*v22.AuthToken, error) {
 	form := url.Values{}
 	form.Add("timeout", strconv.Itoa(timeoutInSeconds))
-	httpResp, err := client.CreateTokenWithBody(context.Background(), "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	httpResp, err := client.CreateTokenWithBody(ctx, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -145,4 +152,9 @@ func callCreateAuthToken(client *v22.Client, timeoutInSeconds int) (*v22.AuthTok
 	}
 	return token.JSON200, nil
 
+}
+func printToken(token *v22.AuthToken) {
+	fmt.Println("Token ID:", *token.Id)
+	fmt.Println("Expiration Date:", *token.ExpirationDate)
+	fmt.Println("Creation Date:", *token.CreationDate)
 }

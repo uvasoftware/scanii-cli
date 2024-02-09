@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"net/http"
-	v22 "scanii-cli/internal/v22"
 	"strings"
 )
 
-func AccountCommand() *cobra.Command {
+func AccountCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "account",
 		Short: "API operations for the account resource",
@@ -27,7 +27,7 @@ func AccountCommand() *cobra.Command {
 				return err
 			}
 
-			pa, err := callAccountEndpoint(client)
+			pa, err := callAccountEndpoint(ctx, client)
 			if err != nil {
 				return err
 			}
@@ -94,8 +94,8 @@ func AccountCommand() *cobra.Command {
 	return cmd
 }
 
-func callAccountEndpoint(client *v22.Client) (*v22.AccountInfo, error) {
-	r, err := client.Account(context.Background())
+func callAccountEndpoint(ctx context.Context, client *v22.Client) (*v22.AccountInfo, error) {
+	r, err := client.Account(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -18,12 +19,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	v22 "scanii-cli/internal/v22"
 	"strings"
 	"time"
 )
 
-func FileCommand() *cobra.Command {
+func FileCommand(ctx context.Context) *cobra.Command {
 
 	var metadata, callback string
 
@@ -41,7 +41,7 @@ func FileCommand() *cobra.Command {
 		}
 
 		// validating credentials
-		if ok, err := callPingEndpoint(client); ok {
+		if ok, err := callPingEndpoint(ctx, client); ok {
 			fmt.Printf("✔ Credentials worked against %s\n", client.Server)
 
 		} else {
@@ -76,7 +76,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = callFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, false)
+			_, err = callFileProcess(ctx, client, args[0], concurrencyLimit, ignoreHidden, metadata, false)
 			return err
 		},
 	}
@@ -95,7 +95,7 @@ If a directory is provided, all files in the directory will be processed recursi
 			if err != nil {
 				return err
 			}
-			_, err = callFileProcess(client, args[0], concurrencyLimit, ignoreHidden, metadata, true)
+			_, err = callFileProcess(ctx, client, args[0], concurrencyLimit, ignoreHidden, metadata, true)
 			return err
 		},
 	}
@@ -116,7 +116,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = callFilesFetch(client, args[0], callback, metadata)
+			_, err = callFilesFetch(ctx, client, args[0], callback, metadata)
 			return err
 
 		},
@@ -136,7 +136,7 @@ If a directory is provided, all files in the directory will be processed recursi
 				return err
 			}
 
-			_, err = callFileRetrieve(client, args[0])
+			_, err = callFileRetrieve(ctx, client, args[0])
 			return err
 		},
 	}
@@ -146,7 +146,7 @@ If a directory is provided, all files in the directory will be processed recursi
 
 }
 
-func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
+func callFileRetrieve(ctx context.Context, client *v22.Client, s string) (*resultRecord, error) {
 	if s == "" {
 		return nil, errors.New("id cannot be empty")
 	}
@@ -154,7 +154,7 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 	startTime := time.Now()
 	slog.Debug("retrieving file", "id", s)
 
-	file, err := client.RetrieveFile(context.Background(), s)
+	file, err := client.RetrieveFile(ctx, s)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func callFileRetrieve(client *v22.Client, s string) (*resultRecord, error) {
 }
 
 // callFilesFetch processes a remote url
-func callFilesFetch(client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
+func callFilesFetch(ctx context.Context, client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
 	slog.Debug("processing location", "url", location)
 
 	// verifying url
@@ -224,7 +224,7 @@ func callFilesFetch(client *v22.Client, location, callback, metadata string) (*r
 	}
 
 	slog.Debug("form", "form", form.Encode())
-	httpResponse, err := client.ProcessFileFetchWithBody(context.Background(), "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	httpResponse, err := client.ProcessFileFetchWithBody(ctx, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ type resultRecord struct {
 }
 
 // callFileProcess processes a file or directory
-func callFileProcess(client *v22.Client, path string, concurrencyLimit int, ignoreHidden bool, metadata string, async bool) ([]*resultRecord, error) {
+func callFileProcess(ctx context.Context, client *v22.Client, path string, concurrencyLimit int, ignoreHidden bool, metadata string, async bool) ([]*resultRecord, error) {
 	slog.Debug("processing file", "path", path)
 	slog.Debug("concurrency limit", "limit", concurrencyLimit)
 	slog.Debug("ignore hidden", "ignore", ignoreHidden)
@@ -403,7 +403,7 @@ func callFileProcess(client *v22.Client, path string, concurrencyLimit int, igno
 					var localErr error
 
 					//nolint
-					resp, localErr := client.ProcessFileWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
+					resp, localErr := client.ProcessFileWithBody(ctx, mpb.FormDataContentType(), pipeReader)
 					if localErr != nil {
 						slog.Error("could not process file", "error", localErr.Error())
 						r.err = localErr.Error()
@@ -454,7 +454,7 @@ func callFileProcess(client *v22.Client, path string, concurrencyLimit int, igno
 					}
 				case true:
 					//nolint:bodyclose // parse closes the body
-					resp, err := client.ProcessFileAsyncWithBody(context.Background(), mpb.FormDataContentType(), pipeReader)
+					resp, err := client.ProcessFileAsyncWithBody(ctx, mpb.FormDataContentType(), pipeReader)
 					if err != nil {
 						slog.Error("could not process file", "error", err.Error())
 						break
@@ -626,7 +626,7 @@ func printFileResult(result *resultRecord) {
 	fmt.Printf("------\n")
 }
 
-func runLocationProcess(client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
+func runLocationProcess(ctx context.Context, client *v22.Client, location, callback, metadata string) (*resultRecord, error) {
 	slog.Debug("processing location", "url", location)
 
 	// verifying url
@@ -664,7 +664,7 @@ func runLocationProcess(client *v22.Client, location, callback, metadata string)
 		return nil, err
 	}
 
-	httpResponse, err := client.ProcessFileWithBody(context.Background(), mp.FormDataContentType(), &body)
+	httpResponse, err := client.ProcessFileWithBody(ctx, mp.FormDataContentType(), &body)
 	if err != nil {
 		return nil, err
 	}
