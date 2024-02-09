@@ -10,6 +10,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -18,7 +19,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	v22 "scanii-cli/internal/v22"
 	"strings"
 	"time"
 )

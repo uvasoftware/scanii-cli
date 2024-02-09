@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"log/slog"
 	"net/http"
-	v22 "scanii-cli/internal/v22"
 	"time"
 )
 

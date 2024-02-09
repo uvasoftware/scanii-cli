@@ -5,10 +5,10 @@ import (
 	"github.com/google/gops/agent"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
+	"github.com/uvasoftware/scanii-cli/cmd/sc/internal/commands"
 	"log/slog"
 	"os"
 	"runtime/debug"
-	"scanii-cli/cmd/sc/internal/commands"
 )
 
 var (

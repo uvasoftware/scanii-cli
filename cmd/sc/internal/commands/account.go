@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"net/http"
-	v22 "scanii-cli/internal/v22"
 	"strings"
 )
 

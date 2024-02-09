@@ -3,11 +3,11 @@ package v22
 import (
 	"errors"
 	"fmt"
+	"github.com/uvasoftware/scanii-cli/internal/engine"
 	"io"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
-	"scanii-cli/internal/engine"
 	"strconv"
 	"strings"
 	"time"

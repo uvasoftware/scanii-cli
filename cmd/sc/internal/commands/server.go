@@ -7,13 +7,13 @@ import (
 	"github.com/alexedwards/flow"
 	"github.com/go-chi/httplog/v2"
 	"github.com/spf13/cobra"
+	"github.com/uvasoftware/scanii-cli/internal/engine"
+	"github.com/uvasoftware/scanii-cli/internal/identifiers"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
-	"scanii-cli/internal/engine"
-	"scanii-cli/internal/identifiers"
-	v22 "scanii-cli/internal/v22"
 	"time"
 )
 

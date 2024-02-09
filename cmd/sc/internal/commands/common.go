@@ -3,9 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
+	"github.com/uvasoftware/scanii-cli/internal/vcs"
 	"net/http"
-	v22 "scanii-cli/internal/v22"
-	"scanii-cli/internal/vcs"
 	"strings"
 )
 
@@ -19,7 +19,7 @@ func createClient(config *configuration) (*v22.Client, error) {
 
 	customizer := v22.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 		req.SetBasicAuth(config.APIKey, config.APISecret)
-		req.Header.Add("User-Agent", fmt.Sprintf("scanii-cli/v%s", vcs.Version()))
+		req.Header.Add("User-Agent", fmt.Sprintf("github.com/uvasoftware/scanii-cli/v%s", vcs.Version()))
 		return nil
 	})
 
