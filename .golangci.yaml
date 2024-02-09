@@ -95,8 +95,6 @@ linters:
     - gocheckcompilerdirectives
     - goconst
     - gocritic
-    # no supported on windows:
-    # - gofmt
     - goprintffuncname
     - gosec
     - gosimple
@@ -105,7 +103,6 @@ linters:
     - misspell
     - nakedret
     - noctx
-    - revive
     - staticcheck
     - stylecheck
     - typecheck

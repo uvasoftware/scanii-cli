@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func PingCommand() *cobra.Command {
+func PingCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ping",
 		Short: "API operations for the ping resource",
@@ -26,7 +26,7 @@ func PingCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			_, err = callPingEndpoint(client)
+			_, err = callPingEndpoint(ctx, client)
 			if err != nil {
 				return err
 			}
@@ -36,10 +36,10 @@ func PingCommand() *cobra.Command {
 	return cmd
 }
 
-func callPingEndpoint(client *v22.Client) (bool, error) {
+func callPingEndpoint(ctx context.Context, client *v22.Client) (bool, error) {
 	startTime := time.Now()
 
-	r, err := client.Ping(context.Background())
+	r, err := client.Ping(ctx)
 	if err != nil {
 		return false, err
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/gops/agent"
 	"github.com/lmittmann/tint"
@@ -56,7 +57,7 @@ func main() {
 	var versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print application version and runtime information",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			bi, _ := debug.ReadBuildInfo()
 			fmt.Println("------------------------------------------------------------")
 			fmt.Printf("%-15s: %s\n", "Version", version)
@@ -70,11 +71,13 @@ func main() {
 		},
 	}
 
+	ctx := context.Background()
+
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.AddCommand(commands.PingCommand())
-	rootCmd.AddCommand(commands.FileCommand())
-	rootCmd.AddCommand(commands.AccountCommand())
-	rootCmd.AddCommand(commands.AuthTokenCommand())
+	rootCmd.AddCommand(commands.PingCommand(ctx))
+	rootCmd.AddCommand(commands.FileCommand(ctx))
+	rootCmd.AddCommand(commands.AccountCommand(ctx))
+	rootCmd.AddCommand(commands.AuthTokenCommand(ctx))
 	rootCmd.AddCommand(commands.ServerCommand())
 	rootCmd.AddCommand(commands.ConfigureCommand())
 	rootCmd.AddCommand(versionCmd)

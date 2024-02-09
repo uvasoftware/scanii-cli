@@ -1,6 +1,9 @@
 package commands
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestShouldCallAccountEndpoint(t *testing.T) {
 	client, err := createClient(config)
@@ -8,7 +11,7 @@ func TestShouldCallAccountEndpoint(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	pa, err := callAccountEndpoint(client)
+	pa, err := callAccountEndpoint(context.Background(), client)
 	if err != nil {
 		t.Fatalf("failed to call account endpoint: %s", err)
 	}

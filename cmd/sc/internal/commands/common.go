@@ -7,6 +7,7 @@ import (
 	"github.com/uvasoftware/scanii-cli/internal/vcs"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // createClient creates a new Scanii client
@@ -24,8 +25,7 @@ func createClient(config *configuration) (*v22.Client, error) {
 	})
 
 	client, err := v22.NewClient(dest, customizer, v22.WithHTTPClient(&http.Client{
-		//Timeout: 30 * time.Second,
-		//Transport: &loggingTransport{},
+		Timeout: 30 * time.Second,
 	}))
 	if err != nil {
 		return nil, err

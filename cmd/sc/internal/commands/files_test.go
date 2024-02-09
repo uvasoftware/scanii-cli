@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"github.com/lmittmann/tint"
 	"log/slog"
@@ -28,7 +29,7 @@ func Test_ShouldProcessSync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := callFileProcess(client, eicarSample, 1, false, "m1=v1", false)
+	results, err := callFileProcess(context.Background(), client, eicarSample, 1, false, "m1=v1", false)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
@@ -49,7 +50,7 @@ func Test_ShouldProcessLocationSync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	result, err := runLocationProcess(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
+	result, err := runLocationProcess(context.Background(), client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
@@ -92,7 +93,7 @@ func Test_ShouldProcessAsync(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := callFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
+	results, err := callFileProcess(context.Background(), client, "testdata/eicar.txt", 1, false, "m1=v1", true)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
@@ -120,7 +121,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 			t.Fatalf("failed to create client: %s", err)
 		}
 
-		result, err := callFilesFetch(client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
+		result, err := callFilesFetch(context.Background(), client, fmt.Sprintf("http://%s/static/eicar.txt", endpoint), "", "m1=v1")
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}
@@ -134,7 +135,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 		}
 
 		// retrieving it
-		retrieve, err := callFileRetrieve(client, result.id)
+		retrieve, err := callFileRetrieve(context.Background(), client, result.id)
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
@@ -147,7 +148,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 			t.Fatalf("failed to create client: %s", err)
 		}
 
-		result, err := callFilesFetch(client, fmt.Sprintf("http://%s/static/nope", endpoint), "", "m1=v1")
+		result, err := callFilesFetch(context.Background(), client, fmt.Sprintf("http://%s/static/nope", endpoint), "", "m1=v1")
 		if err != nil {
 			t.Fatalf("failed to process file: %s", err)
 		}
@@ -161,7 +162,7 @@ func Test_ShouldProcessFetch(t *testing.T) {
 		}
 
 		// retrieving it
-		retrieve, err := callFileRetrieve(client, result.id)
+		retrieve, err := callFileRetrieve(context.Background(), client, result.id)
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
@@ -181,13 +182,13 @@ func Test_shouldRetrievePreviousFiles(t *testing.T) {
 		t.Fatalf("failed to create client: %s", err)
 	}
 
-	results, err := callFileProcess(client, "testdata/eicar.txt", 1, false, "m1=v1", true)
+	results, err := callFileProcess(context.Background(), client, "testdata/eicar.txt", 1, false, "m1=v1", true)
 	if err != nil {
 		t.Fatalf("failed to process file: %s", err)
 	}
 
 	t.Run("valid_id", func(t *testing.T) {
-		retrieve, err := callFileRetrieve(client, results[0].id)
+		retrieve, err := callFileRetrieve(context.Background(), client, results[0].id)
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
