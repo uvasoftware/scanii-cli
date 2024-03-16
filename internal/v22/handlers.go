@@ -327,7 +327,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = writeJSON(w, http.StatusOK, token, nil)
+	err = writeJSON(w, http.StatusCreated, token, nil)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 	}
