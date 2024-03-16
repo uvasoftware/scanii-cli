@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	v22 "github.com/uvasoftware/scanii-cli/internal/v22"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -142,7 +143,7 @@ func callCreateAuthToken(ctx context.Context, client *v22.Client, timeoutInSecon
 	}
 	defer httpResp.Body.Close()
 
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("failed to create token: %s", httpResp.Status)
 	}
 
@@ -150,7 +151,7 @@ func callCreateAuthToken(ctx context.Context, client *v22.Client, timeoutInSecon
 	if err != nil {
 		return nil, err
 	}
-	return token.JSON200, nil
+	return token.JSON201, nil
 
 }
 func printToken(token *v22.AuthToken) {
