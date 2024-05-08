@@ -588,7 +588,7 @@ func printFileResult(result *resultRecord) {
 		fmt.Printf("  %-15s %s\n", "id:", result.id)
 
 		if result.checksum != "" {
-			fmt.Printf("  %-15s %s\n", "checksum/sah1:", result.checksum)
+			fmt.Printf("  %-15s %s\n", "checksum/sha1:", result.checksum)
 		}
 
 		if result.location != "" {
