@@ -7,7 +7,7 @@ toolchain go1.22.0
 require (
 	github.com/alexedwards/flow v0.1.0
 	github.com/dustin/go-humanize v1.0.1
-	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/getkin/kin-openapi v0.123.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/httplog/v2 v2.0.11
@@ -34,8 +34,8 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/term v0.18.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/term v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
