@@ -8,7 +8,7 @@ require (
 	github.com/alexedwards/flow v0.1.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gabriel-vasile/mimetype v1.4.4
-	github.com/getkin/kin-openapi v0.123.0
+	github.com/getkin/kin-openapi v0.127.0
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/httplog/v2 v2.1.0
 	github.com/google/gops v0.3.28
@@ -23,10 +23,10 @@ require (
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/go-openapi/jsonpointer v0.20.2 // indirect
-	github.com/go-openapi/swag v0.22.9 // indirect
+	github.com/go-openapi/jsonpointer v0.21.0 // indirect
+	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/invopop/yaml v0.2.0 // indirect
+	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
