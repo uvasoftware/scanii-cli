@@ -13,7 +13,7 @@ require (
 	github.com/go-chi/httplog/v2 v2.1.0
 	github.com/google/gops v0.3.28
 	github.com/google/uuid v1.6.0
-	github.com/lmittmann/tint v1.0.4
+	github.com/lmittmann/tint v1.0.5
 	github.com/manifoldco/promptui v0.9.0
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/schollz/progressbar/v3 v3.14.6
