@@ -7,11 +7,12 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 //go:embed default.json
@@ -96,11 +97,8 @@ func (e *Engine) Process(contents io.Reader) (Result, error) {
 
 	result.Sha1 = fmt.Sprintf("%x", s1.Sum(nil))
 	result.Sha256 = fmt.Sprintf("%x", s2.Sum(nil))
-	result.ContentLength = uint64(i)
+	result.ContentLength = uint64(i) //nolint:gosec // G115: io.Copy never returns negative values
 
-	if err != nil {
-		slog.Error("error detecting mime type", "error", err.Error())
-	}
 	result.ContentType = mime
 
 	appendIfMissing := func(slice []string, s string) []string {
