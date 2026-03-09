@@ -3,7 +3,6 @@ package v22
 import (
 	"errors"
 	"fmt"
-	"github.com/uvasoftware/scanii-cli/internal/engine"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/uvasoftware/scanii-cli/internal/engine"
 )
 
 var (
@@ -212,12 +213,11 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 
 	}
 
-	length := float32(result.ContentLength)
 	resp := ProcessingResponse{
 		Id:            &id,
 		Findings:      &result.Findings,
 		Checksum:      &result.Sha1,
-		ContentLength: &length,
+		ContentLength: new(float32(result.ContentLength)),
 		ContentType:   &result.ContentType,
 		Metadata:      &result.Metadata,
 		CreationDate:  &result.CreationDate,
@@ -248,45 +248,33 @@ func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
 	key := r.Context().Value(keyInContext).(string)
 
 	// account basically returns made up stuff
-	balance := float32(42_000)
-	startingBalance := float32(100_000)
-	billingEmail := "admin@example.com"
-	accountName := "ACME Inc."
-	creationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
-	accountSub := "Premium"
-
-	// keys
-	keyCreationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
-	lastSeenDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
+	creationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339) // keys
 	keyDetectionCategoriesEnabled := []string{"malware", "unsafe_language", "unsafe_image"}
-	keyActive := true
 	keyTags := []string{"tag1", "tag2"}
 
 	apiKey := &ApiKey{
-		Active:                     &keyActive,
-		CreationDate:               &keyCreationDate,
+		Active:                     new(true),
+		CreationDate:               new(time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)),
 		DetectionCategoriesEnabled: &keyDetectionCategoriesEnabled,
-		LastSeenDate:               &lastSeenDate,
+		LastSeenDate:               new(time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)),
 		Tags:                       &keyTags,
 	}
 
 	// user:
-	userCreationDate := time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)
-
 	user1 := &User{
-		CreationDate: &userCreationDate,
+		CreationDate: new(time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)),
 		LastLogin:    nil,
 	}
 
 	resp := AccountInfo{
-		Balance:          &balance,
-		BillingEmail:     &billingEmail,
+		Balance:          new(float32(42_000)),
+		BillingEmail:     new("admin@example.com"),
 		CreationDate:     &creationDate,
 		Keys:             &map[string]ApiKey{key: *apiKey},
 		ModificationDate: &creationDate,
-		Name:             &accountName,
-		StartingBalance:  &startingBalance,
-		Subscription:     &accountSub,
+		Name:             new("ACME Inc."),
+		StartingBalance:  new(float32(100_000)),
+		Subscription:     new("Premium"),
 		Users:            &map[string]User{"bob@example.com": *user1},
 	}
 
@@ -305,7 +293,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	}
 	timeoutInSeconds := 300
 	if r.Form.Get("timeout") != "" {
-		timeoutInSeconds, err = strconv.Atoi(r.Form.Get("timeout"))
+		timeoutInSeconds, err = strconv.Atoi(r.Form.Get("timeout")) //nolint:all
 		if err != nil {
 			h.renderClientError(http.StatusBadRequest, w, "could not parse timeout")
 			return
@@ -313,11 +301,9 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := generateID()
-	creationDate := time.Now().UTC().Format(time.RFC3339)
-	expirationDate := time.Now().UTC().Add(time.Second * time.Duration(timeoutInSeconds)).Format(time.RFC3339)
 	token := &AuthToken{
-		CreationDate:   &creationDate,
-		ExpirationDate: &expirationDate,
+		CreationDate:   new(time.Now().UTC().Format(time.RFC3339)),
+		ExpirationDate: new(time.Now().UTC().Add(time.Second * time.Duration(timeoutInSeconds)).Format(time.RFC3339)),
 		Id:             &id,
 	}
 
@@ -472,13 +458,11 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// sending response
-	length := float32(result.ContentLength)
-
 	foo := ProcessingResponse{
 		Id:            &id,
 		Findings:      &result.Findings,
 		Checksum:      &result.Sha1,
-		ContentLength: &length,
+		ContentLength: new(float32(result.ContentLength)),
 		ContentType:   &result.ContentType,
 		Metadata:      &metadata,
 		CreationDate:  &result.CreationDate,

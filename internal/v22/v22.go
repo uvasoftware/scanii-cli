@@ -1,17 +1,18 @@
-//go:generate go run github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen@v2 --config=oapi.yaml v22.yaml
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2 --config=oapi.yaml v22.yaml
 package v22
 
 import (
 	"context"
 	"crypto/sha256"
 	"crypto/subtle"
+	"log/slog"
+	"net/http"
+	"strings"
+
 	"github.com/alexedwards/flow"
 	"github.com/google/uuid"
 	"github.com/uvasoftware/scanii-cli/internal/engine"
 	"github.com/uvasoftware/scanii-cli/internal/identifiers"
-	"log/slog"
-	"net/http"
-	"strings"
 )
 
 type contextKey int
@@ -96,15 +97,15 @@ func Setup(mux *flow.Mux, eng *engine.Engine, key, secret, data, baseURL string)
 		router.HandleFunc("/v2.2/files/fetch", handlers.ProcessFileFetch, "POST")
 		router.HandleFunc("/v2.2/files", handlers.ProcessFile, "POST")
 		router.HandleFunc("/v2.2/files/:id", func(writer http.ResponseWriter, request *http.Request) {
-			handlers.RetrieveFile(writer, request, flow.Param(request.Context(), "id"))
+			handlers.RetrieveFile(writer, request, request.PathValue("id"))
 		}, "GET")
 
 		router.HandleFunc("/v2.2/auth/tokens", handlers.CreateToken, "POST")
 		router.HandleFunc("/v2.2/auth/tokens/:id", func(writer http.ResponseWriter, request *http.Request) {
-			handlers.RetrieveToken(writer, request, flow.Param(request.Context(), "id"))
+			handlers.RetrieveToken(writer, request, request.PathValue("id"))
 		}, "GET")
 		router.HandleFunc("/v2.2/auth/tokens/:id", func(writer http.ResponseWriter, request *http.Request) {
-			handlers.DeleteToken(writer, request, flow.Param(request.Context(), "id"))
+			handlers.DeleteToken(writer, request, request.PathValue("id"))
 		}, "DELETE")
 	})
 
