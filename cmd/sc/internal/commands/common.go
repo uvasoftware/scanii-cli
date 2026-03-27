@@ -19,7 +19,7 @@ func createClient(config *configuration) (*v22.Client, error) {
 	}
 
 	customizer := v22.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-		req.SetBasicAuth(config.APIKey, config.APISecret)
+		req.SetBasicAuth(config.apiKey(), config.apiSecret())
 		req.Header.Add("User-Agent", fmt.Sprintf("github.com/uvasoftware/scanii-cli/v%s", vcs.Version()))
 		return nil
 	})

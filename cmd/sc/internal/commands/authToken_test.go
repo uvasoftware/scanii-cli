@@ -38,8 +38,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 	t.Run("use", func(t *testing.T) {
 		// create a config copy
 		configCopy := *config
-		configCopy.APIKey = tokenID
-		configCopy.APISecret = ""
+		configCopy.Credentials = tokenID + ":"
 
 		client2, err := createClient(&configCopy)
 		if err != nil {
@@ -68,8 +67,7 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 
 		// now we try to use it again and it should fail
 		configCopy := *config
-		configCopy.APIKey = tokenID
-		configCopy.APISecret = ""
+		configCopy.Credentials = tokenID + ":"
 
 		client2, err := createClient(&configCopy)
 		if err != nil {

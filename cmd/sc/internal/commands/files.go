@@ -23,17 +23,17 @@ import (
 	"time"
 )
 
-func FileCommand(ctx context.Context) *cobra.Command {
+func FileCommand(ctx context.Context, profile *string) *cobra.Command {
 
 	var metadata, callback string
 
 	init := func() (*v22.Client, error) {
-		config, err := loadConfig()
+		config, err := loadConfig(*profile)
 		if err != nil {
 			return nil, err
 		}
 		fmt.Println("⎻⎻⎻⎻")
-		fmt.Printf("Using endpoint: %s and API key: %s\n", config.Endpoint, config.APIKey)
+		fmt.Printf("Using endpoint: %s and API key: %s\n", config.Endpoint, config.apiKey())
 
 		client, err := createClient(config)
 		if err != nil {

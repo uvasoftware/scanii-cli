@@ -32,9 +32,8 @@ func init() {
 	// waiting for server to start
 	<-ready
 	config = &configuration{
-		Updated:   time.Now(),
-		APIKey:    key,
-		APISecret: secret,
-		Endpoint:  endpoint,
+		CreatedAt:   time.Now(),
+		Credentials: key + ":" + secret,
+		Endpoint:    endpoint,
 	}
 }

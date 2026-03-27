@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/gops/agent"
-	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 	"github.com/uvasoftware/scanii-cli/cmd/sc/internal/commands"
+	"github.com/uvasoftware/scanii-cli/internal/log"
+
 	"log/slog"
 	"os"
 	"runtime/debug"
@@ -14,6 +16,7 @@ import (
 
 var (
 	verbose bool
+	profile string
 
 	// These variables are set in the build step
 	version = "dev"     //nolint
@@ -33,12 +36,7 @@ func main() {
 				level = slog.LevelDebug
 			}
 
-			handler := tint.NewHandler(os.Stdout, &tint.Options{
-				AddSource:  true,
-				Level:      level,
-				TimeFormat: "2006/01/02 15:04",
-				NoColor:    false,
-			})
+			handler := log.NewConsoleLogHandler(os.Stdout, &log.Options{Level: level, AddSource: true})
 			slog.SetDefault(slog.New(handler))
 			slog.Debug("running in debug mode")
 
@@ -74,12 +72,13 @@ func main() {
 	ctx := context.Background()
 
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.AddCommand(commands.PingCommand(ctx))
-	rootCmd.AddCommand(commands.FileCommand(ctx))
-	rootCmd.AddCommand(commands.AccountCommand(ctx))
-	rootCmd.AddCommand(commands.AuthTokenCommand(ctx))
+	rootCmd.PersistentFlags().StringVarP(&profile, "profile", "p", "default", "profile to use")
+	rootCmd.AddCommand(commands.PingCommand(ctx, &profile))
+	rootCmd.AddCommand(commands.FileCommand(ctx, &profile))
+	rootCmd.AddCommand(commands.AccountCommand(ctx, &profile))
+	rootCmd.AddCommand(commands.AuthTokenCommand(ctx, &profile))
 	rootCmd.AddCommand(commands.ServerCommand())
-	rootCmd.AddCommand(commands.ConfigureCommand())
+	rootCmd.AddCommand(commands.ProfileCommand())
 	rootCmd.AddCommand(versionCmd)
 
 	err := rootCmd.Execute()

@@ -12,14 +12,14 @@ import (
 	"strings"
 )
 
-func AuthTokenCommand(ctx context.Context) *cobra.Command {
+func AuthTokenCommand(ctx context.Context, profile *string) *cobra.Command {
 	timeout := 300
 
 	createCmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new authentication token",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
+			config, err := loadConfig(*profile)
 			if err != nil {
 				return err
 			}
@@ -45,7 +45,7 @@ func AuthTokenCommand(ctx context.Context) *cobra.Command {
 		ArgAliases: []string{"id"},
 		Short:      "Retrieves an existing authentication token",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
+			config, err := loadConfig(*profile)
 			if err != nil {
 				return err
 			}
@@ -69,7 +69,7 @@ func AuthTokenCommand(ctx context.Context) *cobra.Command {
 		Args:       cobra.ExactArgs(1),
 		ArgAliases: []string{"id"},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
+			config, err := loadConfig(*profile)
 			if err != nil {
 				return err
 			}

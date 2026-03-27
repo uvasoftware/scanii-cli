@@ -10,17 +10,17 @@ import (
 	"strings"
 )
 
-func AccountCommand(ctx context.Context) *cobra.Command {
+func AccountCommand(ctx context.Context, profile *string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "account",
 		Short: "API operations for the account resource",
 		Long:  `Account API operations. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/General/account`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
+			config, err := loadConfig(*profile)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
+			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.apiKey())
 
 			client, err := createClient(config)
 			if err != nil {

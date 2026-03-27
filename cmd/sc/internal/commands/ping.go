@@ -10,17 +10,17 @@ import (
 	"time"
 )
 
-func PingCommand(ctx context.Context) *cobra.Command {
+func PingCommand(ctx context.Context, profile *string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ping",
 		Short: "API operations for the ping resource",
 		Long:  `Ping API operation. Detailed API documentation can be found here: https://uvasoftware.github.io/openapi/v22/#/General/ping`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, err := loadConfig()
+			config, err := loadConfig(*profile)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.APIKey)
+			fmt.Printf("Using endpoint: %s and key: %s\n", config.Endpoint, config.apiKey())
 
 			client, err := createClient(config)
 			if err != nil {
