@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/lmittmann/tint v1.1.3
 	github.com/manifoldco/promptui v0.9.0
-	github.com/oapi-codegen/runtime v1.2.0
+	github.com/oapi-codegen/runtime v1.3.1
 	github.com/schollz/progressbar/v3 v3.19.0
 	github.com/spf13/cobra v1.10.2
 )
