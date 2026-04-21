@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/uvasoftware/scanii-cli/internal/ansi"
+	"github.com/uvasoftware/scanii-cli/internal/terminal"
 )
 
 // ConsoleLogHandler is a slog.Handler that formats log output to something inspired by Spring Boot's console logger
@@ -63,7 +63,7 @@ func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
 
 	// Timestamp - format: 2026-02-13 06:30:26.866
 	ts := r.Time.Format("2006-01-02 15:04:05.000")
-	_, err := fmt.Fprintf(&buf, "%s ", ansi.ToString(ansi.White, ts))
+	_, err := fmt.Fprintf(&buf, "%s ", terminal.ToString(terminal.Dim, ts))
 	if err != nil {
 		return err
 	}
@@ -71,19 +71,19 @@ func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
 	// Level (colored by level, right-padded to 5 chars)
 	level := r.Level.String()
 	levelColor := levelToColor(r.Level)
-	_, err = fmt.Fprintf(&buf, "%5s ", ansi.ToString(levelColor, level))
+	_, err = fmt.Fprintf(&buf, "%5s ", terminal.ToString(levelColor, level))
 	if err != nil {
 		return err
 	}
 
 	// PID (magenta)
-	_, err = fmt.Fprintf(&buf, "%s ", ansi.ToString(ansi.Magenta, strconv.Itoa(h.pid)))
+	_, err = fmt.Fprintf(&buf, "%s ", terminal.ToString(terminal.Magenta, strconv.Itoa(h.pid)))
 	if err != nil {
 		return err
 	}
 
 	// Source file location
-	// Shows the rightmost 60 characters of the path relative to the module root
+	// Shows the rightmost 50 characters of the path relative to the module root
 	source := ""
 	if h.addSource {
 		fs := runtime.CallersFrames([]uintptr{r.PC})
@@ -93,13 +93,13 @@ func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
 			source = fmt.Sprintf("%s:%d", relPath, f.Line)
 		}
 	}
-	_, err = fmt.Fprintf(&buf, "%60s ", ansi.ToString(ansi.Cyan, truncateOrPad(source, 60)))
+	_, err = fmt.Fprintf(&buf, "%50s ", terminal.ToString(terminal.Cyan, truncateOrPad(source, 50)))
 	if err != nil {
 		return err
 	}
 
 	// Separator and message
-	_, err = fmt.Fprintf(&buf, "%s", ansi.ToString(ansi.Default, ": ", r.Message))
+	_, err = fmt.Fprintf(&buf, "%s", terminal.ToString(terminal.Default, ": ", r.Message))
 	if err != nil {
 		return err
 	}
@@ -124,12 +124,12 @@ func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
 		if val.Kind() == slog.KindGroup {
 			groupAttrs := val.Group()
 			if len(groupAttrs) > 0 {
-				_, _ = fmt.Fprintf(&buf, " %s={", ansi.ToString(ansi.BrightWhite, a.Key))
+				_, _ = fmt.Fprintf(&buf, " %s={", terminal.ToString(terminal.BrightWhite, a.Key))
 				for i, ga := range groupAttrs {
 					if i > 0 {
 						buf.WriteString(", ")
 					}
-					_, _ = fmt.Fprintf(&buf, "%s=%s", ansi.ToString(ansi.BrightWhite, ga.Key), formatValue(ga.Value))
+					_, _ = fmt.Fprintf(&buf, "%s=%s", terminal.ToString(terminal.BrightWhite, ga.Key), formatValue(ga.Value))
 				}
 				buf.WriteString("}")
 			}
@@ -141,7 +141,7 @@ func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
 				buf.WriteString(str)
 			}
 		} else {
-			_, _ = fmt.Fprintf(&buf, " %s=%s", ansi.ToString(ansi.BrightWhite, a.Key), formatValue(val))
+			_, _ = fmt.Fprintf(&buf, " %s=%s", terminal.ToString(terminal.BrightWhite, a.Key), formatValue(val))
 		}
 	}
 
@@ -183,14 +183,14 @@ func (h *ConsoleLogHandler) clone() *ConsoleLogHandler {
 func levelToColor(level slog.Level) string {
 	switch {
 	case level >= slog.LevelError:
-		return ansi.Red
+		return terminal.Red
 	case level >= slog.LevelWarn:
-		return ansi.Yellow
+		return terminal.Yellow
 	case level >= slog.LevelInfo:
-		return ansi.BrightGreen
+		return terminal.BrightGreen
 	default:
 		// DEBUG
-		return ansi.Green
+		return terminal.Green
 	}
 }
 

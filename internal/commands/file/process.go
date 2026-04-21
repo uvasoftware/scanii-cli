@@ -1,0 +1,199 @@
+package file
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync/atomic"
+	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/uvasoftware/scanii-cli/internal/commands/profile"
+	"github.com/uvasoftware/scanii-cli/internal/terminal"
+)
+
+func processCommand(ctx context.Context, profile *string, metadata *string) *cobra.Command {
+	concurrencyLimit := 32 * runtime.NumCPU()
+	ignoreHidden := false
+	var callback string
+
+	cmd := &cobra.Command{
+		Use:        "process [flags] [path]",
+		Args:       cobra.ExactArgs(1),
+		ArgAliases: []string{"file/directory"},
+		Short:      "Process a local file or directory synchronously",
+		Long: `Process a local file synchronously. The file can be a single file or a directory.
+If a directory is provided, all files in the directory will be processed recursively.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			parsedMetadata := extractMetadata(*metadata)
+			return process(ctx, *profile, args[0], parsedMetadata, concurrencyLimit, ignoreHidden, false, callback)
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&callback, "callback", "", "Callback URL to be invoked when processing is complete")
+	cmd.PersistentFlags().IntVarP(&concurrencyLimit, "concurrency", "c", concurrencyLimit, "Number of concurrent requests to use")
+	cmd.PersistentFlags().BoolVarP(&ignoreHidden, "ignore-hidden", "i", false, "Ignore hidden files")
+
+	return cmd
+}
+
+func asyncCommand(ctx context.Context, profile *string, metadata *string) *cobra.Command {
+	concurrencyLimit := 32 * runtime.NumCPU()
+	ignoreHidden := false
+	var callback string
+
+	cmd := &cobra.Command{
+		Use:        "async [flags] [file]",
+		Short:      "Process a local file or directory asynchronously",
+		Args:       cobra.ExactArgs(1),
+		ArgAliases: []string{"file/directory"},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			parsedMetadata := extractMetadata(*metadata)
+			return process(ctx, *profile, args[0], parsedMetadata, concurrencyLimit, ignoreHidden, true, callback)
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&callback, "callback", "", "Callback URL to be invoked when processing is complete")
+	cmd.PersistentFlags().IntVarP(&concurrencyLimit, "concurrency", "c", concurrencyLimit, "Number of concurrent requests to use")
+	cmd.PersistentFlags().BoolVarP(&ignoreHidden, "ignore-hidden", "i", false, "Ignore hidden files")
+
+	return cmd
+}
+
+func process(
+	ctx context.Context,
+	profileName string,
+	path string,
+	metadata map[string]string,
+	concurrencyLimit int,
+	ignoreHidden bool,
+	async bool,
+	callback string,
+) error {
+	// counters
+	filesStarted := atomic.Uint64{}
+	filesFinished := atomic.Uint64{}
+	filesFailed := atomic.Uint64{}
+	filesWithFindings := atomic.Uint64{}
+	isDirectory := false
+	filesTotal := uint64(0)
+	bytesTotal := uint64(0)
+
+	p, err := profile.Load(profileName)
+	if err != nil {
+		return fmt.Errorf("failed to load profile: %w", err)
+	}
+
+	terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", p.Endpoint, p.ApiKey()))
+
+	// support .
+	if path == "." {
+		path, err = os.Getwd()
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("failed to stat path: %w", err)
+	}
+
+	if info.IsDir() {
+		isDirectory = true
+		err = fsWalker(path, ignoreHidden, func(_ string, it os.DirEntry) {
+			fi, err := it.Info()
+			if err != nil {
+				return
+			}
+			bytesTotal += uint64(fi.Size())
+			filesTotal++
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed to walk directory: %w", err)
+		}
+		terminal.Info(fmt.Sprintf("Processing recursive directory %s with ~%s files | ~%s", path, terminal.FormatNumber(int64(filesTotal)), terminal.FormatBytes(bytesTotal)))
+	} else {
+		if ignoreHidden && strings.HasPrefix(filepath.Base(path), ".") {
+			slog.Debug("ignoring hidden file", "path", path)
+			terminal.Info(fmt.Sprintf("Skipping hidden file %s", path))
+			return nil
+		}
+		filesTotal = 1
+		terminal.Info(fmt.Sprintf("Processing file %s", path))
+		bytesTotal += uint64(info.Size())
+	}
+
+	fileChannel := make(chan string)
+	go func() {
+		err = fsWalker(path, ignoreHidden, func(filePath string, _ os.DirEntry) {
+			filesStarted.Add(1)
+			fileChannel <- filePath
+		})
+		if err != nil {
+			filesFailed.Add(1)
+			slog.Error("failed to walk directory", "error", err)
+		}
+		close(fileChannel)
+	}()
+
+	bytesProcessed := uint64(0)
+
+	startTime := time.Now()
+	fs, err := newService(p)
+	err = fs.process(ctx, fileChannel, concurrencyLimit, callback, async, metadata, func(result resultRecord) {
+		if result.err != nil {
+			slog.Error("failed to process file", "file", result.path, "error", result.err)
+			filesFailed.Add(1)
+		} else {
+			filesFinished.Add(1)
+		}
+
+		// increment bytes processed
+		bytesProcessed += result.contentLength
+		if result.findings != nil && len(result.findings) > 0 {
+			filesWithFindings.Add(1)
+		}
+		if isDirectory {
+			slog.Debug("progress", "files_started", filesStarted.Load(), "files_finished", filesFinished.Load(), "files_failed", filesFailed.Load(), "files_with_findings", filesWithFindings.Load(), "total_files", filesTotal)
+			if !slog.Default().Enabled(ctx, slog.LevelDebug) {
+				terminal.ProgressBar("Files", filesFinished.Load()+filesFailed.Load(), filesTotal)
+			}
+		} else {
+			printFileResult(&result)
+		}
+
+	})
+	if err != nil {
+		return err
+	}
+	elapsed := time.Since(startTime)
+	throughput := float64(bytesTotal) / elapsed.Seconds()
+
+	fmt.Println()
+	terminal.Success(fmt.Sprintf("Completed in %s, %s file(s) analyzed. Throughput %s/s", terminal.FormatDuration(elapsed), terminal.FormatNumber(int64(filesFinished.Load())), terminal.FormatBytes(uint64(throughput))))
+	terminal.Success(fmt.Sprintf("Files with findings: %d, unable to process: %d and successfully processed: %d", filesWithFindings.Load(), filesFailed.Load(), filesFinished.Load()))
+
+	return nil
+}
+
+func fsWalker(root string, ignoreHidden bool, handler func(path string, d os.DirEntry)) error {
+	return filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if ignoreHidden && strings.HasPrefix(filepath.Base(path), ".") {
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			slog.Debug("ignoring hidden file", "path", path)
+			return nil
+		}
+		if !d.IsDir() {
+			handler(path, d)
+		}
+		return nil
+	})
+}

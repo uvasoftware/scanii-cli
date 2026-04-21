@@ -60,8 +60,13 @@ test/cover:
 .PHONY: build
 build:
 	rm -rf dist/*
-	go generate ./...
 	go build -o=./dist/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
+
+## build/release: build the application in release mode stripping debug information
+.PHONY: build/release
+build/release:
+	rm -rf dist/*
+	go build -ldflags="-s -w" -o=./dist/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
 .PHONY: run
