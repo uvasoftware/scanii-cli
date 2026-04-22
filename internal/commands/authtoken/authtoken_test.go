@@ -42,15 +42,15 @@ func TestAuthTokenLifeCycle(t *testing.T) {
 		t.Fatalf("expected expiration date to be %d seconds after creation date", targetTimeout)
 	}
 
-	tokenID = *token.Id
+	tokenID = *token.ID
 
 	t.Run("retrieve", func(t *testing.T) {
 		retrieved, err := callRetrieveAuthToken(context.Background(), c, tokenID)
 		if err != nil {
 			t.Fatalf("failed to retrieve token: %s", err)
 		}
-		if *retrieved.Id != tokenID {
-			t.Fatalf("expected token id %s, got %s", tokenID, *retrieved.Id)
+		if *retrieved.ID != tokenID {
+			t.Fatalf("expected token id %s, got %s", tokenID, *retrieved.ID)
 		}
 	})
 

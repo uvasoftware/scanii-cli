@@ -79,7 +79,7 @@ func callFileRetrieve(ctx context.Context, c *client.Client, s string, wait int)
 			pr := resp.Result
 
 			result := resultRecord{
-				id: *pr.Id,
+				id: *pr.ID,
 			}
 			if pr.Metadata != nil {
 				result.metadata = *pr.Metadata

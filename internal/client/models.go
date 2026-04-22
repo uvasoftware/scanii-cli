@@ -5,7 +5,7 @@ type AccountInfo struct {
 	Balance          *float32           `json:"balance,omitempty"`
 	BillingEmail     *string            `json:"billing_email,omitempty"`
 	CreationDate     *string            `json:"creation_date,omitempty"`
-	Keys             *map[string]ApiKey `json:"keys,omitempty"`
+	Keys             *map[string]APIKey `json:"keys,omitempty"`
 	ModificationDate *string            `json:"modification_date,omitempty"`
 	Name             *string            `json:"name,omitempty"`
 	StartingBalance  *float32           `json:"starting_balance,omitempty"`
@@ -13,8 +13,8 @@ type AccountInfo struct {
 	Users            *map[string]User   `json:"users,omitempty"`
 }
 
-// ApiKey defines an API key's properties.
-type ApiKey struct {
+// APIKey defines an API key's properties.
+type APIKey struct {
 	Active                     *bool     `json:"active,omitempty"`
 	CreationDate               *string   `json:"creation_date,omitempty"`
 	DetectionCategoriesEnabled *[]string `json:"detection_categories_enabled,omitempty"`
@@ -32,7 +32,7 @@ type User struct {
 type AuthToken struct {
 	CreationDate   *string `json:"creation_date,omitempty"`
 	ExpirationDate *string `json:"expiration_date,omitempty"`
-	Id             *string `json:"id,omitempty"`
+	ID             *string `json:"id,omitempty"`
 }
 
 // ProcessingResponse is the result of a file analysis.
@@ -43,18 +43,18 @@ type ProcessingResponse struct {
 	CreationDate  *string            `json:"creation_date,omitempty"`
 	Error         *string            `json:"error,omitempty"`
 	Findings      *[]string          `json:"findings,omitempty"`
-	Id            *string            `json:"id,omitempty"`
+	ID            *string            `json:"id,omitempty"`
 	Metadata      *map[string]string `json:"metadata,omitempty"`
 }
 
 // ProcessingPendingResponse is the acknowledgment for an async processing request.
 type ProcessingPendingResponse struct {
-	Id *string `json:"id,omitempty"`
+	ID *string `json:"id,omitempty"`
 }
 
 // ErrorResponse defines an API error.
 type ErrorResponse struct {
 	Error    *string            `json:"error,omitempty"`
-	Id       *string            `json:"id,omitempty"`
+	ID       *string            `json:"id,omitempty"`
 	Metadata *map[string]string `json:"metadata,omitempty"`
 }

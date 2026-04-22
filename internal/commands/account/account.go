@@ -23,7 +23,7 @@ func Command(ctx context.Context, profileName *string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", config.Endpoint, config.ApiKey()))
+			terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", config.Endpoint, config.APIKey()))
 
 			c, err := config.Client()
 			if err != nil {

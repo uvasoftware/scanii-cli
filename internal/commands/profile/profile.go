@@ -159,7 +159,7 @@ func listCommand() *cobra.Command {
 					terminal.Warn(fmt.Sprintf("%s (error: %s)", name, err))
 					continue
 				}
-				profiles = append(profiles, fmt.Sprintf("%s (endpoint=%s key=%s)", terminal.ToString(terminal.Bold, name), config.Endpoint, config.ApiKey()))
+				profiles = append(profiles, fmt.Sprintf("%s (endpoint=%s key=%s)", terminal.ToString(terminal.Bold, name), config.Endpoint, config.APIKey()))
 				found = true
 			}
 
@@ -211,13 +211,13 @@ type Profile struct {
 }
 
 // ApiKey returns the key portion of the credentials (before the colon).
-func (c *Profile) ApiKey() string {
+func (c *Profile) APIKey() string {
 	parts := strings.SplitN(c.Credentials, ":", 2)
 	return parts[0]
 }
 
 // ApiSecret returns the secret portion of the credentials (after the colon).
-func (c *Profile) ApiSecret() string {
+func (c *Profile) APISecret() string {
 	parts := strings.SplitN(c.Credentials, ":", 2)
 	if len(parts) < 2 {
 		return ""
@@ -233,7 +233,7 @@ func (c *Profile) Client() (*client.Client, error) {
 
 	return client.New(dest,
 		client.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-			req.SetBasicAuth(c.ApiKey(), c.ApiSecret())
+			req.SetBasicAuth(c.APIKey(), c.APISecret())
 			req.Header.Add("User-Agent", fmt.Sprintf("github.com/uvasoftware/scanii-cli/v%s", vcs.Version()))
 			return nil
 		}),

@@ -37,11 +37,11 @@ func TestSaveAndLoadConfig(t *testing.T) {
 	if loaded.Credentials != "testkey:testsecret" {
 		t.Fatalf("expected Credentials 'testkey:testsecret', got %q", loaded.Credentials)
 	}
-	if loaded.ApiKey() != "testkey" {
-		t.Fatalf("expected apiKey 'testkey', got %q", loaded.ApiKey())
+	if loaded.APIKey() != "testkey" {
+		t.Fatalf("expected apiKey 'testkey', got %q", loaded.APIKey())
 	}
-	if loaded.ApiSecret() != "testsecret" {
-		t.Fatalf("expected apiSecret 'testsecret', got %q", loaded.ApiSecret())
+	if loaded.APISecret() != "testsecret" {
+		t.Fatalf("expected apiSecret 'testsecret', got %q", loaded.APISecret())
 	}
 	if loaded.Endpoint != "api-us1.scanii.com" {
 		t.Fatalf("expected Endpoint 'api-us1.scanii.com', got %q", loaded.Endpoint)
@@ -332,32 +332,32 @@ func TestApiKeyAndSecretParsing(t *testing.T) {
 	c := &Profile{
 		Credentials: "mykey:mysecret",
 	}
-	if c.ApiKey() != "mykey" {
-		t.Fatalf("expected apiKey 'mykey', got %q", c.ApiKey())
+	if c.APIKey() != "mykey" {
+		t.Fatalf("expected apiKey 'mykey', got %q", c.APIKey())
 	}
-	if c.ApiSecret() != "mysecret" {
-		t.Fatalf("expected apiSecret 'mysecret', got %q", c.ApiSecret())
+	if c.APISecret() != "mysecret" {
+		t.Fatalf("expected apiSecret 'mysecret', got %q", c.APISecret())
 	}
 
 	// credentials with no colon
 	c2 := &Profile{
 		Credentials: "onlykey",
 	}
-	if c2.ApiKey() != "onlykey" {
-		t.Fatalf("expected apiKey 'onlykey', got %q", c2.ApiKey())
+	if c2.APIKey() != "onlykey" {
+		t.Fatalf("expected apiKey 'onlykey', got %q", c2.APIKey())
 	}
-	if c2.ApiSecret() != "" {
-		t.Fatalf("expected apiSecret '', got %q", c2.ApiSecret())
+	if c2.APISecret() != "" {
+		t.Fatalf("expected apiSecret '', got %q", c2.APISecret())
 	}
 
 	// credentials with multiple colons (secret contains colon)
 	c3 := &Profile{
 		Credentials: "key:secret:with:colons",
 	}
-	if c3.ApiKey() != "key" {
-		t.Fatalf("expected apiKey 'key', got %q", c3.ApiKey())
+	if c3.APIKey() != "key" {
+		t.Fatalf("expected apiKey 'key', got %q", c3.APIKey())
 	}
-	if c3.ApiSecret() != "secret:with:colons" {
-		t.Fatalf("expected apiSecret 'secret:with:colons', got %q", c3.ApiSecret())
+	if c3.APISecret() != "secret:with:colons" {
+		t.Fatalf("expected apiSecret 'secret:with:colons', got %q", c3.APISecret())
 	}
 }

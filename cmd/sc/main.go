@@ -38,10 +38,8 @@ func main() {
 		Short:   "Scanii CLI",
 		Long:    "A CLI to help you integrate Scanii (https://www.scanii.com) with your application",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			level := slog.LevelError
-
 			if verbose {
-				level = slog.LevelDebug
+				level := slog.LevelDebug
 				handler := log.NewConsoleLogHandler(os.Stdout, &log.Options{Level: level, AddSource: true})
 				slog.SetDefault(slog.New(handler))
 				slog.Debug("running in debug mode")

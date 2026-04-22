@@ -16,7 +16,7 @@ import (
 	"github.com/uvasoftware/scanii-cli/internal/terminal"
 )
 
-func processCommand(ctx context.Context, profile *string, metadata *string) *cobra.Command {
+func processCommand(ctx context.Context, profile, metadata *string) *cobra.Command {
 	concurrencyLimit := 32 * runtime.NumCPU()
 	ignoreHidden := false
 	var callback string
@@ -41,7 +41,7 @@ If a directory is provided, all files in the directory will be processed recursi
 	return cmd
 }
 
-func asyncCommand(ctx context.Context, profile *string, metadata *string) *cobra.Command {
+func asyncCommand(ctx context.Context, profile, metadata *string) *cobra.Command {
 	concurrencyLimit := 32 * runtime.NumCPU()
 	ignoreHidden := false
 	var callback string
@@ -88,11 +88,14 @@ func process(
 		return fmt.Errorf("failed to load profile: %w", err)
 	}
 
-	terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", p.Endpoint, p.ApiKey()))
+	terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", p.Endpoint, p.APIKey()))
 
 	// support .
 	if path == "." {
 		path, err = os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
 	}
 
 	info, err := os.Stat(path)
@@ -107,14 +110,14 @@ func process(
 			if err != nil {
 				return
 			}
-			bytesTotal += uint64(fi.Size())
+			bytesTotal += uint64(fi.Size()) //nolint:gosec
 			filesTotal++
 		})
 
 		if err != nil {
 			return fmt.Errorf("failed to walk directory: %w", err)
 		}
-		terminal.Info(fmt.Sprintf("Processing recursive directory %s with ~%s files | ~%s", path, terminal.FormatNumber(int64(filesTotal)), terminal.FormatBytes(bytesTotal)))
+		terminal.Info(fmt.Sprintf("Processing recursive directory %s with ~%s files | ~%s", path, terminal.FormatNumber(int64(filesTotal)), terminal.FormatBytes(bytesTotal))) //nolint:gosec
 	} else {
 		if ignoreHidden && strings.HasPrefix(filepath.Base(path), ".") {
 			slog.Debug("ignoring hidden file", "path", path)
@@ -123,7 +126,7 @@ func process(
 		}
 		filesTotal = 1
 		terminal.Info(fmt.Sprintf("Processing file %s", path))
-		bytesTotal += uint64(info.Size())
+		bytesTotal += uint64(info.Size()) //nolint:gosec
 	}
 
 	fileChannel := make(chan string)
@@ -153,7 +156,7 @@ func process(
 
 		// increment bytes processed
 		bytesProcessed += result.contentLength
-		if result.findings != nil && len(result.findings) > 0 {
+		if len(result.findings) > 0 {
 			filesWithFindings.Add(1)
 		}
 		if isDirectory {
@@ -173,7 +176,7 @@ func process(
 	throughput := float64(bytesTotal) / elapsed.Seconds()
 
 	fmt.Println()
-	terminal.Success(fmt.Sprintf("Completed in %s, %s file(s) analyzed. Throughput %s/s", terminal.FormatDuration(elapsed), terminal.FormatNumber(int64(filesFinished.Load())), terminal.FormatBytes(uint64(throughput))))
+	terminal.Success(fmt.Sprintf("Completed in %s, %s file(s) analyzed. Throughput %s/s", terminal.FormatDuration(elapsed), terminal.FormatNumber(int64(filesFinished.Load())), terminal.FormatBytes(uint64(throughput)))) //nolint:gosec
 	terminal.Success(fmt.Sprintf("Files with findings: %d, unable to process: %d and successfully processed: %d", filesWithFindings.Load(), filesFailed.Load(), filesFinished.Load()))
 
 	return nil

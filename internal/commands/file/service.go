@@ -2,7 +2,7 @@ package file
 
 import (
 	"context"
-	sha1hash "crypto/sha1"
+	sha1hash "crypto/sha1" //nolint:gosec
 	"fmt"
 	"io"
 	"log/slog"
@@ -43,7 +43,7 @@ func (s *service) retrieve(ctx context.Context, id string) (*resultRecord, error
 
 	r := resp.Result
 	return &resultRecord{
-		id:            *r.Id,
+		id:            *r.ID,
 		contentType:   *r.ContentType,
 		checksum:      *r.Checksum,
 		findings:      *r.Findings,
@@ -174,7 +174,7 @@ func (s *service) process(ctx context.Context, stream chan string, maxConcurrenc
 					slog.Debug("error processing file", "path", path, "status", result.StatusCode)
 					r.err = fmt.Errorf("error processing file %s, status code %d", path, result.StatusCode)
 				} else {
-					r.id = *result.Pending.Id
+					r.id = *result.Pending.ID
 					r.location = result.Header.Get("Location")
 				}
 
@@ -208,7 +208,7 @@ func (s *service) process(ctx context.Context, stream chan string, maxConcurrenc
 					r.err = fmt.Errorf("error processing file %s, status code %d", path, result.StatusCode)
 				} else {
 					pr := result.Result
-					r.id = *pr.Id
+					r.id = *pr.ID
 					if pr.ContentType != nil {
 						r.contentType = *pr.ContentType
 					}

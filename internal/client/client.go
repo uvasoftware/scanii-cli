@@ -111,7 +111,7 @@ type RetrieveTokenResult struct {
 }
 
 // do executes an HTTP request and returns the status code, headers, and body bytes.
-func (c *Client) do(ctx context.Context, method, path string, contentType string, body io.Reader) (int, http.Header, []byte, error) {
+func (c *Client) do(ctx context.Context, method, path, contentType string, body io.Reader) (int, http.Header, []byte, error) { //nolint:gocritic
 	url := c.baseURL + path
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {

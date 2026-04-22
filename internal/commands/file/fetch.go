@@ -17,7 +17,7 @@ import (
 	"github.com/uvasoftware/scanii-cli/internal/terminal"
 )
 
-func fetchCommand(ctx context.Context, profileName *string, metadata *string) *cobra.Command {
+func fetchCommand(ctx context.Context, profileName, metadata *string) *cobra.Command {
 	var callback string
 	var wait int
 
@@ -31,7 +31,7 @@ func fetchCommand(ctx context.Context, profileName *string, metadata *string) *c
 			if err != nil {
 				return err
 			}
-			terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", config.Endpoint, config.ApiKey()))
+			terminal.Info(fmt.Sprintf("Using endpoint: %s and API key: %s", config.Endpoint, config.APIKey()))
 
 			c, err := config.Client()
 			if err != nil {
@@ -93,7 +93,7 @@ func callFilesFetch(ctx context.Context, c *client.Client, location, callback, m
 		return nil, fmt.Errorf("error: unexpected status code %d", result.StatusCode)
 	}
 
-	id := *result.Pending.Id
+	id := *result.Pending.ID
 	terminal.Success(fmt.Sprintf("Request accepted with id %s in %s", id, terminal.FormatDuration(time.Since(startTime))))
 	terminal.KeyValue("id:", id)
 	if callback != "" {
@@ -160,7 +160,7 @@ func runLocationProcess(ctx context.Context, c *client.Client, location, callbac
 
 	pr := result.Result
 	r := resultRecord{}
-	r.id = *pr.Id
+	r.id = *pr.ID
 	if pr.ContentType != nil {
 		r.contentType = *pr.ContentType
 	}

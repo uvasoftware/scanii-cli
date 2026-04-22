@@ -145,7 +145,7 @@ func callCreateAuthToken(ctx context.Context, c *client.Client, timeoutInSeconds
 }
 
 func printToken(token *client.AuthToken) {
-	terminal.KeyValue("id:", *token.Id)
+	terminal.KeyValue("id:", *token.ID)
 	terminal.KeyValue("created:", terminal.FormatTime(*token.CreationDate))
 	terminal.KeyValue("expires:", terminal.FormatTime(*token.ExpirationDate))
 }

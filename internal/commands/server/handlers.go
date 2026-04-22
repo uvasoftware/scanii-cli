@@ -99,7 +99,7 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 
 	// sending response
 	resp := client.ProcessingPendingResponse{
-		Id: &id,
+		ID: &id,
 	}
 
 	headers := http.Header{}
@@ -177,7 +177,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 
 	// sending response
 	resp := client.ProcessingPendingResponse{
-		Id: &id,
+		ID: &id,
 	}
 
 	err = writeJSON(w, http.StatusAccepted, resp, headers)
@@ -203,7 +203,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 		resp := client.ErrorResponse{
 			Error:    &result.Error,
 			Metadata: &result.Metadata,
-			Id:       &result.ID,
+			ID:       &result.ID,
 		}
 
 		err = writeJSON(w, http.StatusOK, resp, nil)
@@ -215,7 +215,7 @@ func (h FakeHandler) RetrieveFile(w http.ResponseWriter, _ *http.Request, id str
 	}
 
 	resp := client.ProcessingResponse{
-		Id:            &id,
+		ID:            &id,
 		Findings:      &result.Findings,
 		Checksum:      &result.Sha1,
 		ContentLength: new(float32(result.ContentLength)),
@@ -253,7 +253,7 @@ func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
 	keyDetectionCategoriesEnabled := []string{"malware", "unsafe_language", "unsafe_image"}
 	keyTags := []string{"tag1", "tag2"}
 
-	apiKey := &client.ApiKey{
+	apiKey := &client.APIKey{
 		Active:                     new(true),
 		CreationDate:               new(time.Now().UTC().AddDate(0, 0, -30).Format(time.RFC3339)),
 		DetectionCategoriesEnabled: &keyDetectionCategoriesEnabled,
@@ -271,7 +271,7 @@ func (h FakeHandler) Account(w http.ResponseWriter, r *http.Request) {
 		Balance:          new(float32(42_000)),
 		BillingEmail:     new("admin@example.com"),
 		CreationDate:     &creationDate,
-		Keys:             &map[string]client.ApiKey{key: *apiKey},
+		Keys:             &map[string]client.APIKey{key: *apiKey},
 		ModificationDate: &creationDate,
 		Name:             new("ACME Inc."),
 		StartingBalance:  new(float32(100_000)),
@@ -294,8 +294,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	}
 	timeoutInSeconds := 300
 	if r.Form.Get("timeout") != "" {
-		//lint:ignore SA4006 timeoutInSeconds is used later when building the expiration date
-		timeoutInSeconds, err = strconv.Atoi(r.Form.Get("timeout"))
+		timeoutInSeconds, err = strconv.Atoi(r.Form.Get("timeout")) //nolint:staticcheck
 		if err != nil {
 			h.renderClientError(http.StatusBadRequest, w, "could not parse timeout")
 			return
@@ -306,7 +305,7 @@ func (h FakeHandler) CreateToken(w http.ResponseWriter, r *http.Request) {
 	token := &client.AuthToken{
 		CreationDate:   new(time.Now().UTC().Format(time.RFC3339)),
 		ExpirationDate: new(time.Now().UTC().Add(time.Second * time.Duration(timeoutInSeconds)).Format(time.RFC3339)),
-		Id:             &id,
+		ID:             &id,
 	}
 
 	err = h.store.save(id, token)
@@ -461,7 +460,7 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 
 	// sending response
 	foo := client.ProcessingResponse{
-		Id:            &id,
+		ID:            &id,
 		Findings:      &result.Findings,
 		Checksum:      &result.Sha1,
 		ContentLength: new(float32(result.ContentLength)),

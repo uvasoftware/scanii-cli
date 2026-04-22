@@ -49,7 +49,7 @@ func Setup(mux *http.ServeMux, eng *engine.Engine, key, secret, data, baseURL st
 					if err != nil {
 						slog.Error("failed to load token", "error", err)
 					} else {
-						ctx := context.WithValue(r.Context(), keyInContext, *token.Id)
+						ctx := context.WithValue(r.Context(), keyInContext, *token.ID)
 						next.ServeHTTP(w, r.WithContext(ctx))
 						return
 					}

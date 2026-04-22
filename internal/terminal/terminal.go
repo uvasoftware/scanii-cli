@@ -246,7 +246,7 @@ func ProgressBar(label string, current, total uint64) {
 	}
 
 	termWidth := getTerminalWidth()
-	barWidth := termWidth - len(label) - len(stats) - 7 // 7 = spaces + brackets
+	barWidth := termWidth - len(label) - len(stats) - 7 // 7 chars for spaces and brackets
 	if barWidth < 10 {
 		barWidth = 10
 	}

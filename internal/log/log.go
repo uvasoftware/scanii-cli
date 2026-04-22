@@ -58,7 +58,7 @@ func (h *ConsoleLogHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= minLevel
 }
 
-func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error {
+func (h *ConsoleLogHandler) Handle(_ context.Context, r slog.Record) error { //nolint:gocritic
 	var buf bytes.Buffer
 
 	// Timestamp - format: 2026-02-13 06:30:26.866

@@ -27,7 +27,7 @@ func TestFsWalkerDirectory(t *testing.T) {
 	dir := t.TempDir()
 	// create some files
 	for _, name := range []string{"a.txt", "b.txt", "c.txt"} {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte("test"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("test"), 0600); err != nil {
 			t.Fatalf("failed to create file: %s", err)
 		}
 	}
@@ -36,7 +36,7 @@ func TestFsWalkerDirectory(t *testing.T) {
 	if err := os.Mkdir(sub, 0755); err != nil {
 		t.Fatalf("failed to create dir: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(sub, "d.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sub, "d.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
@@ -54,7 +54,7 @@ func TestFsWalkerDirectory(t *testing.T) {
 
 func TestFsWalkerSkipsDirectories(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "file.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "file.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 	if err := os.Mkdir(filepath.Join(dir, "subdir"), 0755); err != nil {
@@ -91,7 +91,7 @@ func TestFsWalkerPassesFilePath(t *testing.T) {
 	if err := os.Mkdir(sub, 0755); err != nil {
 		t.Fatalf("failed to create dir: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(sub, "deep.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sub, "deep.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
@@ -114,11 +114,11 @@ func TestFsWalkerPassesFilePath(t *testing.T) {
 func TestFsWalkerIgnoreHidden(t *testing.T) {
 	dir := t.TempDir()
 	// visible file
-	if err := os.WriteFile(filepath.Join(dir, "visible.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "visible.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 	// hidden file
-	if err := os.WriteFile(filepath.Join(dir, ".hidden"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".hidden"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 	// hidden directory with a file inside
@@ -126,7 +126,7 @@ func TestFsWalkerIgnoreHidden(t *testing.T) {
 	if err := os.Mkdir(hiddenDir, 0755); err != nil {
 		t.Fatalf("failed to create dir: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(hiddenDir, "inside.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(hiddenDir, "inside.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
@@ -149,12 +149,12 @@ func TestFsWalkerIgnoreHiddenDotfiles(t *testing.T) {
 	dir := t.TempDir()
 	// create common dotfiles that should be ignored
 	for _, name := range []string{".gitignore", ".env", ".dockerignore"} {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte("test"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("test"), 0600); err != nil {
 			t.Fatalf("failed to create file: %s", err)
 		}
 	}
 	// create a visible file
-	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 	// create nested dotfile inside a subdirectory
@@ -162,10 +162,10 @@ func TestFsWalkerIgnoreHiddenDotfiles(t *testing.T) {
 	if err := os.Mkdir(sub, 0755); err != nil {
 		t.Fatalf("failed to create dir: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(sub, ".gitignore"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sub, ".gitignore"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(sub, "readme.md"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(sub, "readme.md"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
@@ -188,7 +188,7 @@ func TestFsWalkerIgnoreHiddenDotfiles(t *testing.T) {
 func TestFsWalkerIgnoreHiddenSingleFile(t *testing.T) {
 	dir := t.TempDir()
 	hiddenFile := filepath.Join(dir, ".gitignore")
-	if err := os.WriteFile(hiddenFile, []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(hiddenFile, []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
@@ -206,10 +206,10 @@ func TestFsWalkerIgnoreHiddenSingleFile(t *testing.T) {
 
 func TestFsWalkerIncludeHidden(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "visible.txt"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "visible.txt"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".hidden"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".hidden"), []byte("test"), 0600); err != nil {
 		t.Fatalf("failed to create file: %s", err)
 	}
 
