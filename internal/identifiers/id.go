@@ -10,7 +10,7 @@ import (
 
 const defaultShortLength = 16
 const defaultLength = 32
-const runes = "01233456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const runes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func Generate() string {
 	return generate(defaultLength)

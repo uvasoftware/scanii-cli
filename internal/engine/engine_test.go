@@ -17,6 +17,59 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestRuleCount(t *testing.T) {
+	engine, err := New()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if engine.RuleCount() == 0 {
+		t.Fatalf("expected non-zero rule count")
+	}
+	if engine.RuleCount() != len(engine.config.Rules) {
+		t.Fatalf("RuleCount() mismatch: got %d, want %d", engine.RuleCount(), len(engine.config.Rules))
+	}
+}
+
+func TestLoadConfigCustomRules(t *testing.T) {
+	engine := &Engine{config: &Config{Rules: make([]Rule, 0)}}
+	config := `{"rules": [{"format": "sha1", "content": "abc123", "result": "test.finding"}]}`
+	err := engine.LoadConfig(strings.NewReader(config))
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if engine.RuleCount() != 1 {
+		t.Fatalf("expected 1 rule, got %d", engine.RuleCount())
+	}
+	if engine.config.Rules[0].Result != "test.finding" {
+		t.Fatalf("expected rule result test.finding, got %s", engine.config.Rules[0].Result)
+	}
+}
+
+func TestLoadConfigInvalidJSON(t *testing.T) {
+	engine := &Engine{config: &Config{Rules: make([]Rule, 0)}}
+	err := engine.LoadConfig(strings.NewReader("not json"))
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
+	}
+}
+
+func TestProcessEmptyInput(t *testing.T) {
+	engine, err := New()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	result, err := engine.Process(strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if result.ContentLength != 0 {
+		t.Fatalf("expected content length 0, got %d", result.ContentLength)
+	}
+	if len(result.Findings) != 0 {
+		t.Fatalf("expected no findings, got %v", result.Findings)
+	}
+}
+
 func TestIdentifyEicar(t *testing.T) {
 	engine, err := New()
 	if err != nil {
