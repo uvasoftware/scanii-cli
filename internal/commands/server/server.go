@@ -74,7 +74,7 @@ func RunServer(flags *Flags) {
 
 	// wrap the mux with request logging middleware
 	logger := httplog.NewLogger("sc", httplog.Options{
-		LogLevel:         slog.LevelInfo,
+		LogLevel:         slog.LevelDebug,
 		Concise:          true,
 		RequestHeaders:   true,
 		MessageFieldName: "message",
@@ -99,6 +99,7 @@ func RunServer(flags *Flags) {
 	//goland:noinspection HttpUrlsUsage
 	terminal.KeyValue("Address:", fmt.Sprintf("http://%s", flags.Address))
 	//goland:noinspection HttpUrlsUsage
+	fmt.Println()
 	terminal.Info(fmt.Sprintf("Sample usage: curl -u %s:%s http://%s/v2.2/ping", flags.Key, flags.Secret, flags.Address))
 
 	listen, err := net.Listen("tcp", flags.Address)

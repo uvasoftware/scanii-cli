@@ -41,6 +41,7 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		h.renderClientError(http.StatusMethodNotAllowed, w, err.Error())
 		return
 	}
+	var callback string
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
@@ -63,6 +64,14 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 				h.renderServerError(w, err.Error())
 				return
 			}
+		}
+
+		if part.FormName() == "callback" {
+			builder := strings.Builder{}
+			_, err := io.Copy(&builder, part)
+			if err != nil {
+			}
+			callback = builder.String()
 		}
 
 		if strings.HasPrefix(part.FormName(), "metadata[") {
@@ -95,6 +104,11 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 	if result.ContentLength == 0 {
 		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
 		return
+	}
+
+	// sending callback if available:
+	if callback != "" {
+		h.engine.QueueCallback(callback, &result)
 	}
 
 	// sending response
@@ -170,6 +184,11 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.renderServerError(w, err.Error())
 		return
+	}
+
+	// sending callback if available:
+	if r.Form.Get("callback") != "" {
+		h.engine.QueueCallback(r.Form.Get("callback"), &result)
 	}
 
 	headers := http.Header{}
@@ -356,6 +375,7 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	id := generateID()
 	fileFound, locationFound := false, false
 	metadata := make(map[string]string)
+	var callback string
 
 	reader, err := r.MultipartReader()
 	if err != nil {
@@ -428,7 +448,13 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 			} else {
 				result.Error = errorCloudNotDownload
 			}
-
+		}
+		if part.FormName() == "callback" {
+			builder := strings.Builder{}
+			_, err := io.Copy(&builder, part)
+			if err != nil {
+			}
+			callback = builder.String()
 		}
 	}
 
@@ -456,6 +482,11 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	if result.ContentLength == 0 {
 		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
 		return
+	}
+
+	// sending callback if available:
+	if callback != "" {
+		h.engine.QueueCallback(callback, &result)
 	}
 
 	// sending response
