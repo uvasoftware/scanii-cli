@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -11,6 +12,7 @@ import (
 func TestSaveAndLoadConfig(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	c := &Profile{
 		Credentials: "testkey:testsecret",
@@ -54,6 +56,7 @@ func TestSaveAndLoadConfig(t *testing.T) {
 func TestLoadConfigNonExistent(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	_, err := Load("doesnotexist")
 	if err == nil {
@@ -64,6 +67,7 @@ func TestLoadConfigNonExistent(t *testing.T) {
 func TestSaveConfigOverwrite(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	c1 := &Profile{
 		Credentials: "key1:secret1",
@@ -98,6 +102,7 @@ func TestSaveConfigOverwrite(t *testing.T) {
 func TestMultipleProfiles(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	profiles := map[string]*Profile{
 		"dev": {
@@ -137,6 +142,7 @@ func TestMultipleProfiles(t *testing.T) {
 func TestConfigDir(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	dir, err := ConfigDir()
 	if err != nil {
@@ -152,6 +158,7 @@ func TestConfigDir(t *testing.T) {
 func TestConfigPath(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	p, err := ConfigPath("myprofile")
 	if err != nil {
@@ -167,6 +174,7 @@ func TestConfigPath(t *testing.T) {
 func TestSaveConfigSetsCreatedAtTime(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	before := time.Now().Add(-time.Second)
 	c := &Profile{
@@ -190,8 +198,12 @@ func TestSaveConfigSetsCreatedAtTime(t *testing.T) {
 }
 
 func TestConfigFilePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix file permissions are not enforced on Windows")
+	}
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	c := &Profile{
 		Credentials: "k:s",
@@ -217,6 +229,7 @@ func TestConfigFilePermissions(t *testing.T) {
 func TestProfileDeleteCommand(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	c := &Profile{
 		Credentials: "k:s",
@@ -276,6 +289,7 @@ func TestProfileCommandStructure(t *testing.T) {
 func TestJsonFormat(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
+	t.Setenv("USERPROFILE", tmpHome)
 
 	c := &Profile{
 		Credentials: "sck_abc123:scks_secret456",
