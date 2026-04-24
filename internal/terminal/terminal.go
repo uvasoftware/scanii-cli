@@ -162,7 +162,7 @@ func Warn(message string) {
 
 // Info prints a dim/faint message.
 func Info(message string) {
-	_, _ = fmt.Fprintln(stdout, styled(Dim, message))
+	_, _ = fmt.Fprintln(stdout, styled(White, message))
 }
 
 // List prints a numbered list of items.

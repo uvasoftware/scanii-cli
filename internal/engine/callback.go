@@ -17,7 +17,8 @@ type callback struct {
 	ID            string            `json:"id"`
 	Checksum      string            `json:"checksum,omitempty"`
 	ContentLength uint64            `json:"content_length,omitempty"`
-	Findings      []string          `json:"findings,omitempty"`
+	ContentType   string            `json:"content_type,omitempty"`
+	Findings      []string          `json:"findings"`
 	CreationDate  string            `json:"creation_date,omitempty"`
 	Metadata      map[string]string `json:"metadata,omitempty"`
 	Error         string            `json:"error,omitempty"`
@@ -44,6 +45,7 @@ func (e *Engine) newRunner() (chan callbackItem, error) {
 			body, err := json.Marshal(&callback{
 				ID:            msg.result.ID,
 				ContentLength: msg.result.ContentLength,
+				ContentType:   msg.result.ContentType,
 				Checksum:      msg.result.Sha1,
 				Findings:      msg.result.Findings,
 				CreationDate:  msg.result.CreationDate,

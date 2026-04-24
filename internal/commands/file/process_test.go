@@ -9,7 +9,7 @@ import (
 
 func TestFsWalkerSingleFile(t *testing.T) {
 	var visited []string
-	err := fsWalker(eicarSample, false, func(path string, d os.DirEntry) {
+	err := fsWalker(fakeMalwareSample, false, func(path string, d os.DirEntry) {
 		visited = append(visited, d.Name())
 	})
 	if err != nil {
@@ -18,8 +18,8 @@ func TestFsWalkerSingleFile(t *testing.T) {
 	if len(visited) != 1 {
 		t.Fatalf("expected 1 file, got %d", len(visited))
 	}
-	if visited[0] != "eicar.txt" {
-		t.Fatalf("expected eicar.txt, got %s", visited[0])
+	if visited[0] != "sample" {
+		t.Fatalf("expected sample, got %s", visited[0])
 	}
 }
 

@@ -91,7 +91,8 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// saving metadata
+	// engine.Process returns a fresh Result so restore the ID + metadata
+	result.ID = id
 	result.Metadata = metadata
 
 	slog.Debug("saving result")
@@ -179,6 +180,7 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// saving result
+	result.ID = id
 	result.Metadata = metadata
 	err = h.store.save(id, &result)
 	if err != nil {
@@ -375,7 +377,6 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	id := generateID()
 	fileFound, locationFound := false, false
 	metadata := make(map[string]string)
-	var callback string
 
 	reader, err := r.MultipartReader()
 	if err != nil {
@@ -449,13 +450,6 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 				result.Error = errorCloudNotDownload
 			}
 		}
-		if part.FormName() == "callback" {
-			builder := strings.Builder{}
-			_, err := io.Copy(&builder, part)
-			if err != nil {
-			}
-			callback = builder.String()
-		}
 	}
 
 	// todo: this is inefficient as we're doing the analysis twice
@@ -469,7 +463,8 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// saving metadata
+	// engine.Process returns a fresh Result so restore the ID + metadata
+	result.ID = id
 	result.Metadata = metadata
 
 	slog.Debug("saving result")
@@ -482,11 +477,6 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 	if result.ContentLength == 0 {
 		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
 		return
-	}
-
-	// sending callback if available:
-	if callback != "" {
-		h.engine.QueueCallback(callback, &result)
 	}
 
 	// sending response

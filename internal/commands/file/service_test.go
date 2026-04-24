@@ -19,7 +19,7 @@ func TestServiceProcessSyncSingleFile(t *testing.T) {
 	svc := newTestService(t)
 
 	stream := make(chan string, 1)
-	stream <- eicarSample
+	stream <- fakeMalwareSample
 	close(stream)
 
 	var results []resultRecord
@@ -42,7 +42,7 @@ func TestServiceProcessSyncSingleFile(t *testing.T) {
 	if r.err != nil {
 		t.Fatalf("expected no error, got %s", r.err)
 	}
-	assertEicar(t, r)
+	checkResponseContent(t, r)
 	if r.metadata["m1"] != "v1" {
 		t.Fatalf("expected metadata m1=v1, got %s", r.metadata["m1"])
 	}
@@ -52,7 +52,7 @@ func TestServiceProcessAsyncSingleFile(t *testing.T) {
 	svc := newTestService(t)
 
 	stream := make(chan string, 1)
-	stream <- eicarSample
+	stream <- fakeMalwareSample
 	close(stream)
 
 	var results []resultRecord
@@ -87,9 +87,9 @@ func TestServiceProcessMultipleFiles(t *testing.T) {
 	svc := newTestService(t)
 
 	stream := make(chan string, 3)
-	stream <- eicarSample
-	stream <- eicarSample
-	stream <- eicarSample
+	stream <- fakeMalwareSample
+	stream <- fakeMalwareSample
+	stream <- fakeMalwareSample
 	close(stream)
 
 	var results []resultRecord
@@ -112,7 +112,7 @@ func TestServiceProcessMultipleFiles(t *testing.T) {
 		if r.err != nil {
 			t.Fatalf("result %d: expected no error, got %s", i, r.err)
 		}
-		assertEicar(t, &r)
+		checkResponseContent(t, &r)
 	}
 }
 
@@ -149,7 +149,7 @@ func TestServiceRetrieve(t *testing.T) {
 
 	// first process a file to get an id
 	stream := make(chan string, 1)
-	stream <- eicarSample
+	stream <- fakeMalwareSample
 	close(stream)
 
 	var results []resultRecord
@@ -174,7 +174,7 @@ func TestServiceRetrieve(t *testing.T) {
 		t.Fatalf("retrieve failed: %s", err)
 	}
 
-	assertEicar(t, retrieved)
+	checkResponseContent(t, retrieved)
 	if retrieved.metadata["m1"] != "v1" {
 		t.Fatalf("expected metadata m1=v1, got %s", retrieved.metadata["m1"])
 	}
@@ -185,7 +185,7 @@ func TestServiceRetrieveAsync(t *testing.T) {
 
 	// process a file async
 	stream := make(chan string, 1)
-	stream <- eicarSample
+	stream <- fakeMalwareSample
 	close(stream)
 
 	var results []resultRecord
@@ -210,5 +210,5 @@ func TestServiceRetrieveAsync(t *testing.T) {
 		t.Fatalf("retrieve failed: %s", err)
 	}
 
-	assertEicar(t, retrieved)
+	checkResponseContent(t, retrieved)
 }
