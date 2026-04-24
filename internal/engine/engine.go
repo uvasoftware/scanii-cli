@@ -46,10 +46,7 @@ func New() (*Engine, error) {
 		return nil, err
 	}
 
-	engine.callbackQueue, err = engine.newRunner()
-	if err != nil {
-		return nil, err
-	}
+	engine.callbackQueue = engine.newRunner()
 
 	return engine, nil
 }

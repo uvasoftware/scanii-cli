@@ -68,8 +68,9 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 
 		if part.FormName() == "callback" {
 			builder := strings.Builder{}
-			_, err := io.Copy(&builder, part)
-			if err != nil {
+			if _, err := io.Copy(&builder, part); err != nil {
+				slog.Error("failed to read callback field", "error", err)
+				continue
 			}
 			callback = builder.String()
 		}

@@ -105,9 +105,9 @@ func startServer(t *testing.T) *httptest.Server {
 }
 
 // authReq builds an HTTP request with basic auth set to key/secret.
-func authReq(t *testing.T, method, url string, body io.Reader, contentType string) *http.Request {
+func authReq(t *testing.T, url string, body io.Reader, contentType string) *http.Request {
 	t.Helper()
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, url, body)
 	if err != nil {
 		t.Fatalf("new request: %s", err)
 	}
@@ -120,7 +120,7 @@ func authReq(t *testing.T, method, url string, body io.Reader, contentType strin
 
 // multipartBody builds a multipart/form-data body with the given
 // string fields and a single "file" part containing the given bytes.
-func multipartBody(t *testing.T, fields map[string]string, fileBytes []byte) (io.Reader, string) {
+func multipartBody(t *testing.T, fields map[string]string, fileBytes []byte) (_ io.Reader, contentType string) {
 	t.Helper()
 	buf := &bytes.Buffer{}
 	mw := multipart.NewWriter(buf)
@@ -185,7 +185,7 @@ func TestCallbackAsyncDelivers(t *testing.T) {
 	}
 	body, ctype := multipartBody(t, fields, []byte("hello async world"))
 
-	resp, err := http.DefaultClient.Do(authReq(t, http.MethodPost, server.URL+"/v2.2/files/async", body, ctype))
+	resp, err := http.DefaultClient.Do(authReq(t, server.URL+"/v2.2/files/async", body, ctype))
 	if err != nil {
 		t.Fatalf("post: %s", err)
 	}
@@ -231,7 +231,7 @@ func TestCallbackFetchDelivers(t *testing.T) {
 	form.Set("callback", recv.server.URL)
 	form.Set("metadata[purpose]", "callback-test")
 
-	req := authReq(t, http.MethodPost, server.URL+"/v2.2/files/fetch",
+	req := authReq(t, server.URL+"/v2.2/files/fetch",
 		strings.NewReader(form.Encode()),
 		"application/x-www-form-urlencoded")
 
@@ -269,7 +269,7 @@ func TestCallbackNotFiredWhenAbsent(t *testing.T) {
 	defer recv.close()
 
 	body, ctype := multipartBody(t, nil, []byte("no callback please"))
-	resp, err := http.DefaultClient.Do(authReq(t, http.MethodPost, server.URL+"/v2.2/files/async", body, ctype))
+	resp, err := http.DefaultClient.Do(authReq(t, server.URL+"/v2.2/files/async", body, ctype))
 	if err != nil {
 		t.Fatalf("post: %s", err)
 	}
@@ -295,7 +295,7 @@ func TestCallbackFetchWithDownloadErrorStillDelivers(t *testing.T) {
 	form.Set("location", server.URL+"/static/does-not-exist")
 	form.Set("callback", recv.server.URL)
 
-	req := authReq(t, http.MethodPost, server.URL+"/v2.2/files/fetch",
+	req := authReq(t, server.URL+"/v2.2/files/fetch",
 		strings.NewReader(form.Encode()),
 		"application/x-www-form-urlencoded")
 
@@ -332,7 +332,7 @@ func TestCallbackAsyncRejectsUnreachableURLGracefully(t *testing.T) {
 		map[string]string{"callback": "http://127.0.0.1:1/no-listener"},
 		[]byte("fire and forget"))
 
-	resp, err := http.DefaultClient.Do(authReq(t, http.MethodPost, server.URL+"/v2.2/files/async", body, ctype))
+	resp, err := http.DefaultClient.Do(authReq(t, server.URL+"/v2.2/files/async", body, ctype))
 	if err != nil {
 		t.Fatalf("post: %s", err)
 	}
@@ -345,7 +345,7 @@ func TestCallbackAsyncRejectsUnreachableURLGracefully(t *testing.T) {
 	// Follow up with a valid scan to confirm the server + engine are
 	// still serving requests after the failed delivery attempt.
 	body2, ctype2 := multipartBody(t, nil, []byte("still alive"))
-	resp2, err := http.DefaultClient.Do(authReq(t, http.MethodPost, server.URL+"/v2.2/files/async", body2, ctype2))
+	resp2, err := http.DefaultClient.Do(authReq(t, server.URL+"/v2.2/files/async", body2, ctype2))
 	if err != nil {
 		t.Fatalf("follow-up post: %s", err)
 	}

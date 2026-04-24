@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -25,7 +26,7 @@ type callback struct {
 }
 
 // newRunner creates a new runner returning a channel to submit callbacks to
-func (e *Engine) newRunner() (chan callbackItem, error) {
+func (e *Engine) newRunner() chan callbackItem {
 	const UA = "scanii/jackfruit (see https://www.scanii.com)"
 
 	queue := make(chan callbackItem, 100)
@@ -56,7 +57,7 @@ func (e *Engine) newRunner() (chan callbackItem, error) {
 				slog.Error("failed to marshal callback", "error", err)
 				return
 			}
-			req, err := http.NewRequest("POST", msg.destination, bytes.NewReader(body))
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, msg.destination, bytes.NewReader(body))
 			if err != nil {
 				slog.Error("failed to create request", "error", err)
 				return
@@ -72,5 +73,5 @@ func (e *Engine) newRunner() (chan callbackItem, error) {
 			slog.Debug("callback delivered", "destination", msg.destination, "status", resp.StatusCode)
 		}
 	}()
-	return queue, nil
+	return queue
 }
