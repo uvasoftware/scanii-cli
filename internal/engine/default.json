@@ -1,4 +1,5 @@
 {
+  "callback_wait": 100,
   "rules": [
     {
       "format": "sha1",
@@ -18,6 +19,11 @@
       "format": "sha256",
       "content": "0ab57ba85f2955228ef2f1483b572241f392f5a035be147156b26f65e7165c83",
       "result": "content.en.language.nsfw.0"
+    },
+    {
+      "format" : "sha256",
+      "content" : "e0aee2eadd300f5b2efe29aea85a13cb1a9ae02ab191e7e9430b561c87ec507d",
+      "result" : "content.malicious.local-test-file"
     }
   ]
 }

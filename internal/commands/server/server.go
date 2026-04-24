@@ -1,7 +1,7 @@
 package server
 
 import (
-	"embed"
+	_ "embed"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -12,22 +12,21 @@ import (
 
 	"github.com/go-chi/httplog/v2"
 	"github.com/spf13/cobra"
+	"github.com/uvasoftware/scanii-cli/assets"
 	"github.com/uvasoftware/scanii-cli/internal/engine"
 	"github.com/uvasoftware/scanii-cli/internal/identifiers"
 	"github.com/uvasoftware/scanii-cli/internal/terminal"
 )
 
-//go:embed  static/**
-var static embed.FS
-
 // Flags holds configuration for the mock server.
 type Flags struct {
-	Address   string
-	Engine    string
-	Key       string
-	Secret    string
-	Data      string
-	ReadyChan chan bool
+	Address      string
+	Engine       string
+	Key          string
+	Secret       string
+	Data         string
+	ReadyChan    chan bool
+	CallBackWait time.Duration
 }
 
 // RunServer starts the mock Scanii server. This function blocks.
@@ -60,10 +59,6 @@ func RunServer(flags *Flags) {
 
 	mux := http.NewServeMux()
 
-	// static files
-	fileServer := http.FileServer(http.FS(static))
-	mux.Handle("GET /static/", fileServer)
-
 	eng, err := engine.New()
 	if err != nil {
 		slog.Error("could not create engine")
@@ -74,7 +69,7 @@ func RunServer(flags *Flags) {
 
 	// wrap the mux with request logging middleware
 	logger := httplog.NewLogger("sc", httplog.Options{
-		LogLevel:         slog.LevelInfo,
+		LogLevel:         slog.LevelDebug,
 		Concise:          true,
 		RequestHeaders:   true,
 		MessageFieldName: "message",
@@ -92,14 +87,21 @@ func RunServer(flags *Flags) {
 	}
 	slog.Debug("storage directory", "path", flags.Data)
 
-	terminal.Section("Scanii test server starting")
+	terminal.Title("Scanii local server starting")
 	terminal.KeyValue("API Key:", flags.Key)
 	terminal.KeyValue("API Secret:", flags.Secret)
 	terminal.KeyValue("Engine Rules:", fmt.Sprintf("%d", eng.RuleCount()))
 	//goland:noinspection HttpUrlsUsage
 	terminal.KeyValue("Address:", fmt.Sprintf("http://%s", flags.Address))
 	//goland:noinspection HttpUrlsUsage
+	fmt.Println()
 	terminal.Info(fmt.Sprintf("Sample usage: curl -u %s:%s http://%s/v2.2/ping", flags.Key, flags.Secret, flags.Address))
+	terminal.Section("We also provide fake sample files you can use to trigger findings")
+	terminal.Info(fmt.Sprintf("content.image.nsfw.nudity: http://%s/static/samples/image.jpg", flags.Address))
+	terminal.Info(fmt.Sprintf("content.en.language.nsfw.0: http://%s/static/samples/language.txt", flags.Address))
+	terminal.Info(fmt.Sprintf("content.malicious.local-test-file: http://%s/static/samples/malware", flags.Address))
+	fmt.Println()
+	terminal.Info("Remember this is for testing purposes only files aren't really analyzed 👍")
 
 	listen, err := net.Listen("tcp", flags.Address)
 	if err != nil {
@@ -119,6 +121,14 @@ func RunServer(flags *Flags) {
 	}
 }
 
+// serverEICAR decodes the embedded base64 EICAR payload and returns it
+// as text/plain. Keeping the signature off-disk prevents AV engines
+// from deleting it between builds.
+func serverEICAR(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	_, _ = w.Write([]byte(assets.DecodedEICAR()))
+}
+
 // Command returns the server cobra command.
 func Command() *cobra.Command {
 	serverF := Flags{}
@@ -132,6 +142,7 @@ func Command() *cobra.Command {
 
 	serverCmd.PersistentFlags().StringVarP(&serverF.Address, "address", "a", "localhost:4000", "Address to listen on")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Engine, "engine", "e", "", "Optional engine config to load")
+	serverCmd.PersistentFlags().DurationVarP(&serverF.CallBackWait, "callback-wait", "w", 100*time.Millisecond, "Amount of time a callback should wait before firing")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Data, "data", "d", "", "Result storage path, defaults to a temp directory")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Key, "key", "k", "key", "API key to use, if not provided will be dynamically generated")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Secret, "secret", "s", "secret", "API secret to use, if not provided will be dynamically generated")

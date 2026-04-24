@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/uvasoftware/scanii-cli/assets"
 	"github.com/uvasoftware/scanii-cli/internal/client"
 	"github.com/uvasoftware/scanii-cli/internal/engine"
 	"github.com/uvasoftware/scanii-cli/internal/identifiers"
@@ -92,6 +93,12 @@ func Setup(mux *http.ServeMux, eng *engine.Engine, key, secret, data, baseURL st
 	wrap := func(h http.HandlerFunc) http.Handler {
 		return middleware(h, authMiddleware, headersMiddleware)
 	}
+
+	// Static fixtures (unauthenticated) — used both by the CLI demo and
+	// by integration tests that fetch via the server's own URL.
+	mux.HandleFunc("GET /static/eicar.txt", serverEICAR)
+	fileServer := http.FileServer(http.FS(assets.EmbeddedFiles))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 
 	mux.Handle("GET /v2.2/account.json", wrap(handlers.Account))
 	mux.Handle("GET /v2.2/ping", wrap(handlers.Ping))

@@ -19,7 +19,8 @@ import (
 var defaultConfig string
 
 type Engine struct {
-	config *Config
+	config        *Config
+	callbackQueue chan callbackItem
 }
 
 type Rule struct {
@@ -28,7 +29,8 @@ type Rule struct {
 	Result  string `json:"result"`
 }
 type Config struct {
-	Rules []Rule `json:"rules"`
+	Rules        []Rule         `json:"rules"`
+	CallbackWait *time.Duration `json:"callback_wait"`
 }
 
 func New() (*Engine, error) {
@@ -43,6 +45,8 @@ func New() (*Engine, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	engine.callbackQueue = engine.newRunner()
 
 	return engine, nil
 }
@@ -126,6 +130,13 @@ func (e *Engine) Process(contents io.Reader) (Result, error) {
 
 	return result, nil
 
+}
+
+func (e *Engine) QueueCallback(c string, r *Result) {
+	e.callbackQueue <- callbackItem{
+		result:      r,
+		destination: c,
+	}
 }
 
 // recycleReader returns the MIME type of input and a new reader

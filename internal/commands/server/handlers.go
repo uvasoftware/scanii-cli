@@ -41,6 +41,7 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		h.renderClientError(http.StatusMethodNotAllowed, w, err.Error())
 		return
 	}
+	var callback string
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
@@ -65,6 +66,15 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		if part.FormName() == "callback" {
+			builder := strings.Builder{}
+			if _, err := io.Copy(&builder, part); err != nil {
+				slog.Error("failed to read callback field", "error", err)
+				continue
+			}
+			callback = builder.String()
+		}
+
 		if strings.HasPrefix(part.FormName(), "metadata[") {
 			k := extractMetadataKey(part.FormName())
 			buf := strings.Builder{}
@@ -82,7 +92,8 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// saving metadata
+	// engine.Process returns a fresh Result so restore the ID + metadata
+	result.ID = id
 	result.Metadata = metadata
 
 	slog.Debug("saving result")
@@ -95,6 +106,11 @@ func (h FakeHandler) ProcessFileAsync(w http.ResponseWriter, r *http.Request) {
 	if result.ContentLength == 0 {
 		h.renderClientError(http.StatusBadRequest, w, errorNoFileSent)
 		return
+	}
+
+	// sending callback if available:
+	if callback != "" {
+		h.engine.QueueCallback(callback, &result)
 	}
 
 	// sending response
@@ -165,11 +181,17 @@ func (h FakeHandler) ProcessFileFetch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// saving result
+	result.ID = id
 	result.Metadata = metadata
 	err = h.store.save(id, &result)
 	if err != nil {
 		h.renderServerError(w, err.Error())
 		return
+	}
+
+	// sending callback if available:
+	if r.Form.Get("callback") != "" {
+		h.engine.QueueCallback(r.Form.Get("callback"), &result)
 	}
 
 	headers := http.Header{}
@@ -428,7 +450,6 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 			} else {
 				result.Error = errorCloudNotDownload
 			}
-
 		}
 	}
 
@@ -443,7 +464,8 @@ func (h FakeHandler) ProcessFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// saving metadata
+	// engine.Process returns a fresh Result so restore the ID + metadata
+	result.ID = id
 	result.Metadata = metadata
 
 	slog.Debug("saving result")

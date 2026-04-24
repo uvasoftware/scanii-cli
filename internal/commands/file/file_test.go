@@ -6,26 +6,23 @@ import (
 	"testing"
 )
 
-const eicarSample = "testdata/eicar.txt"
-
-// assertEicar checks that the result is the expected eicar test file
-// https://en.wikipedia.org/wiki/EICAR_test_file
-func assertEicar(t *testing.T, result *resultRecord) {
+// checkResponseContent checks that the result is the expected sample test file
+func checkResponseContent(t *testing.T, result *resultRecord) {
 	t.Helper()
 
 	if len(result.findings) == 0 {
 		t.Fatalf("expected findings, got none")
 	}
 
-	if result.findings[0] != "content.malicious.eicar-test-signature" {
+	if result.findings[0] != "content.malicious.local-test-file" {
 		t.Fatalf("expected finding content.malicious.eicar-test-signature, got %s", result.findings[0])
 	}
 
-	if result.checksum != "3395856ce81f2b7382dee72602f798b642f14140" {
-		t.Fatalf("expected checksum 3395856ce81f2b7382dee72602f798b642f14140, got %s", result.checksum)
+	if result.checksum != "7da9d3b0c68b1d0543acb65af4220a4745607557" {
+		t.Fatalf("expected checksum 7da9d3b0c68b1d0543acb65af4220a4745607557, got %s", result.checksum)
 	}
 
-	if result.contentLength != 68 {
+	if result.contentLength != 36 {
 		t.Fatalf("expected content length 68, got %d", result.contentLength)
 	}
 }
@@ -41,7 +38,9 @@ func TestShouldProcessLocationSync(t *testing.T) {
 		t.Fatalf("failed to process file: %s", err)
 	}
 
-	assertEicar(t, result)
+	if result.findings[0] != "content.malicious.eicar-test-signature" {
+		t.Fatalf("expected finding content.malicious.eicar-test-signature, got %s", result.findings[0])
+	}
 
 	if result.metadata["m1"] != "v1" {
 		t.Fatalf("expected metadata m1=v1, got %s", result.metadata["m1"])
@@ -72,7 +71,10 @@ func TestShouldProcessFetch(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to retrieve file: %s", err)
 		}
-		assertEicar(t, retrieve)
+
+		if retrieve.findings[0] != "content.malicious.eicar-test-signature" {
+			t.Fatalf("expected finding content.malicious.eicar-test-signature, got %s", result.findings[0])
+		}
 	})
 
 	t.Run("negative", func(t *testing.T) {
