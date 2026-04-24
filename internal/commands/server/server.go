@@ -144,7 +144,7 @@ func Command() *cobra.Command {
 		Short: "Start a mock server suitable for testing purposes",
 	}
 
-	serverCmd.PersistentFlags().StringVarP(&serverF.Address, "address", "a", "localhost:4000", "Address to listen on")
+	serverCmd.PersistentFlags().StringVarP(&serverF.Address, "address", "a", "0.0.0.0:4000", "Address to listen on")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Engine, "engine", "e", "", "Optional engine config to load")
 	serverCmd.PersistentFlags().DurationVarP(&serverF.CallBackWait, "callback-wait", "w", 100*time.Millisecond, "Amount of time a callback should wait before firing")
 	serverCmd.PersistentFlags().StringVarP(&serverF.Data, "data", "d", "", "Result storage path, defaults to a temp directory")
