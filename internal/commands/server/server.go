@@ -42,8 +42,12 @@ func RunServer(flags *Flags) {
 	}
 
 	if flags.Data == "" {
+		// Ensure the system temp directory exists — minimal Docker images
+		// (e.g. scratch, distroless) may not include /tmp.
+		if err := os.MkdirAll(os.TempDir(), 0755); err != nil {
+			panic(err)
+		}
 		dir, err := os.MkdirTemp("", "scanii-cli")
-
 		if err != nil {
 			panic(err)
 		}
