@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0]
+
+### Added
+
+- CORS support on the mock server, matching `api.scanii.com` in production (`Allow-Origin: *`, `Allow-Methods: GET, POST, HEAD, OPTIONS, DELETE`, `Allow-Headers: Authorization, User-Agent`, `Max-Age: 300`). OPTIONS preflight short-circuits with 200, no credentials required. Lets browser-based clients call the mock from a different origin.
+
 ## [1.5.0]
 
 ### Added
