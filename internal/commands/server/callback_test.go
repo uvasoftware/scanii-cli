@@ -95,7 +95,7 @@ func startServer(t *testing.T) *httptest.Server {
 		t.Fatalf("engine.New: %s", err)
 	}
 	mux := http.NewServeMux()
-	ts := httptest.NewUnstartedServer(mux)
+	ts := httptest.NewUnstartedServer(CORS(mux))
 	// Setup needs the externally visible base URL for Location headers;
 	// we pass it after the listener is bound.
 	ts.Start()
