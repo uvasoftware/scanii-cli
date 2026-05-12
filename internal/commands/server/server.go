@@ -79,7 +79,7 @@ func RunServer(flags *Flags) {
 		MessageFieldName: "message",
 		TimeFieldFormat:  time.DateTime,
 	})
-	handler := httplog.RequestLogger(logger)(mux)
+	handler := CORS(httplog.RequestLogger(logger)(mux))
 
 	srv := &http.Server{
 		Addr:         flags.Address,

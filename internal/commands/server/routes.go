@@ -30,6 +30,24 @@ func middleware(h http.Handler, mws ...func(http.Handler) http.Handler) http.Han
 	return h
 }
 
+// CORS wraps a handler so browser-based clients can call the mock from a
+// different origin. The header set mirrors what the real Scanii API serves
+// in production. OPTIONS preflight requests are answered with 200 + the
+// Access-Control headers and do not reach the wrapped handler.
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, User-Agent")
+		w.Header().Set("Access-Control-Max-Age", "300")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func Setup(mux *http.ServeMux, eng *engine.Engine, key, secret, data, baseURL string) {
 	handlers := FakeHandler{
 		engine:  eng,
