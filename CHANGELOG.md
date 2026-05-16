@@ -9,7 +9,7 @@
 
 ### Changed
 
-- `.goreleaser.yaml` now pins the build matrix explicitly to `amd64`+`arm64` (Windows stays `amd64`-only), so the shell installer can rely on a stable archive-name contract.
+- `.goreleaser.yaml` now pins the build matrix explicitly to `amd64`+`arm64` across all OSes, so the shell installer can rely on a stable archive-name contract. The `386` archives (linux-386, windows-386) are no longer produced — no GitHub-hosted runner uses them and they had no known consumers.
 
 ## [1.6.0]
 

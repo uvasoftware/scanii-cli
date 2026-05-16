@@ -10,9 +10,6 @@ builds:
     goarch:
       - amd64
       - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
     main: ./cmd/sc/main.go
     binary: sc
     ldflags: -s -w -X main.version={{.Version}} -X main.date={{.Date}}
