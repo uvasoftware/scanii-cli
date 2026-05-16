@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 builds:
   - env:
@@ -7,6 +7,12 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
     main: ./cmd/sc/main.go
     binary: sc
     ldflags: -s -w -X main.version={{.Version}} -X main.date={{.Date}}
@@ -18,15 +24,32 @@ dockers:
       - "ghcr.io/scanii/scanii-cli:latest"
 report_sizes: true
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     wrap_in_directory: true
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
     name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     files:
       - LICENSE
       - README.md
+
+checksum:
+  name_template: checksums.txt
+
+brews:
+  - name: scanii-cli
+    repository:
+      owner: scanii
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://www.scanii.com
+    description: "Scanii CLI — interact with the Scanii API and run a local mock server for integration testing"
+    license: Apache-2.0
+    install: |
+      bin.install "sc"
+    test: |
+      system "#{bin}/sc", "version"
 
 changelog:
   sort: asc

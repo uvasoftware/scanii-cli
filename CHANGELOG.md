@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.7.0]
+
+### Added
+
+- Homebrew install path. Goreleaser now publishes the formula to `scanii/homebrew-tap` on every release: `brew install scanii/tap/scanii-cli`.
+- Shell installer at `install.sh`. POSIX-compatible script that detects OS/arch, fetches the matching release archive, verifies the SHA-256, and installs `sc` to `~/.local/bin` (override via `SCANII_CLI_BIN_DIR`, pin a version via `SCANII_CLI_VERSION`): `curl -fsSL https://raw.githubusercontent.com/scanii/scanii-cli/main/install.sh | sh`.
+
+### Changed
+
+- `.goreleaser.yaml` now pins the build matrix explicitly to `amd64`+`arm64` (Windows stays `amd64`-only), so the shell installer can rely on a stable archive-name contract.
+
 ## [1.6.0]
 
 ### Added
