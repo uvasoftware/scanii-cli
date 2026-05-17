@@ -10,15 +10,19 @@ The Scanii CLI (`sc`) helps you build, test, and manage your [Scanii](https://ww
 
 ## Installation
 
-### Binary releases
-
-Pre-built binaries for macOS, Windows, and Linux are available on the [releases page](https://github.com/scanii/scanii-cli/releases).
-
-On macOS, you may need to remove the quarantine attribute before running:
+### Homebrew (macOS, Linux)
 
 ```shell
-xattr -d com.apple.quarantine /path/to/sc
+brew install scanii/tap/scanii-cli
 ```
+
+### Shell installer (macOS, Linux)
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/scanii/scanii-cli/main/install.sh | sh
+```
+
+The installer downloads the matching release archive from GitHub, verifies it against `checksums.txt`, and installs `sc` to `~/.local/bin` (override with `SCANII_CLI_BIN_DIR`). Pin a specific version with `SCANII_CLI_VERSION=1.6.0`.
 
 ### Docker
 
@@ -29,6 +33,16 @@ docker run ghcr.io/scanii/scanii-cli:latest
 ```
 
 Previous versions are listed [here](https://github.com/scanii/scanii-cli/pkgs/container/scanii-cli).
+
+### Binary releases
+
+Pre-built binaries for macOS, Windows, and Linux are available on the [releases page](https://github.com/scanii/scanii-cli/releases).
+
+On macOS, you may need to remove the quarantine attribute before running:
+
+```shell
+xattr -d com.apple.quarantine /path/to/sc
+```
 
 ## Quick start
 
