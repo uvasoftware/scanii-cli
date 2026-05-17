@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.1]
+
+### Fixed
+
+- Republish of the 1.7.0 release. The 1.7.0 tag pushed an empty release because `goreleaser-action@v5` with `version: latest` locks to goreleaser v1.x, which rejected the v2 config schema introduced in 1.7.0. Bumped the action to `@v6` pinned to `~> v2`. No source or behavior changes; same install paths as 1.7.0.
+
 ## [1.7.0]
 
 ### Added
